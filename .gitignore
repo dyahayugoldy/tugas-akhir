@@ -1,0 +1,29 @@
+# Confidential SAP source data and derived local artifacts
+dataset/
+artifacts/
+
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Python environments, caches, and test output
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Notebook and experiment runtime state
+.ipynb_checkpoints/
+mlruns/
+wandb/
+tensorboard/
+logs/

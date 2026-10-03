@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Forecast Experiment Run Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "model_name",
+    "seed",
+    "data_manifest_id",
+    "split_manifest_id",
+    "feature_contract_version",
+    "source_revision",
+    "environment",
+    "timing",
+    "artifacts"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+    },
+    "model_name": {
+      "type": "string",
+      "enum": ["moebs_transformer", "nspace_transformer", "tft"]
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "data_manifest_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "split_manifest_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "feature_contract_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_revision": {
+      "type": "string",
+      "minLength": 7
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["python_version", "framework", "device"],
+      "properties": {
+        "python_version": { "type": "string" },
+        "framework": { "type": "string" },
+        "framework_version": { "type": "string" },
+        "device": { "type": "string" },
+        "hardware": { "type": "string" }
+      }
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["training_seconds", "inference_seconds"],
+      "properties": {
+        "training_seconds": { "type": "number", "minimum": 0 },
+        "inference_seconds": { "type": "number", "minimum": 0 }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checkpoint", "predictions", "metrics"],
+      "properties": {
+        "checkpoint": { "type": "string", "pattern": "^artifacts/" },
+        "predictions": { "type": "string", "pattern": "^artifacts/" },
+        "metrics": { "type": "string", "pattern": "^artifacts/" }
+      }
+    }
+  }
+}
