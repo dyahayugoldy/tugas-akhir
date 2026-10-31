@@ -27,3 +27,17 @@ mlruns/
 wandb/
 tensorboard/
 logs/
+
+# Prevent accidental copies of SAP workbooks and detailed model outputs
+*.[xX][lL][sS][xX]
+*.[xX][lL][sS]
+*.[pP][aA][rR][qQ][uU][eE][tT]
+*.[pP][tT]
+*.[pP][tT][hH]
+*.[cC][kK][pP][tT]
+*.[oO][nN][nN][xX]
+*.[sS][aA][fF][eE][tT][eE][nN][sS][oO][rR][sS]
+*.[lL][oO][gG]
+*.[pP][eE][mM]
+*.[kK][eE][yY]
+tmp/

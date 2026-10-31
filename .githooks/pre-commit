@@ -1,11 +1,5 @@
 #!/bin/sh
 
-# Prevent confidential SAP data, generated artifacts, and credentials from
-# entering the Git index. The check intentionally looks only at staged paths.
-blocked_paths=$(git diff --cached --name-only --diff-filter=ACMR)
-
-if printf '%s\n' "$blocked_paths" | grep -Eq '^(dataset/|artifacts/|secrets/|\.env($|\.)|.*\.(pem|key)$)'; then
-  echo "Commit blocked: staged confidential data, generated artifacts, or credentials."
-  echo "Keep SAP files under dataset/ and derived files under artifacts/."
-  exit 1
-fi
+# Git supplies its shell on Windows; validation itself uses portable Python.
+# Missing Python or a failed check blocks the commit.
+exec python -m src.utils.git_protection --staged

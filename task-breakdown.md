@@ -2,6 +2,16 @@
 
 Dokumen ini memecah penelitian menjadi pekerjaan yang dapat diverifikasi. Urutan penting karena model tidak boleh dilatih sebelum kontrak data, target, dan split dibekukan.
 
+## Indikator status
+
+Status di bawah diaudit pada 31 Oktober 2026 berdasarkan artefak yang ada di repositori. Status `✅ Selesai` hanya dipakai setelah seluruh kriteria pada bagian **Selesai bila** dapat dibuktikan.
+
+| Indikator | Arti |
+| --- | --- |
+| ⬜ Belum dimulai | Belum ada implementasi atau artefak pembuktian untuk paket kerja. |
+| 🔄 Sebagian selesai | Ada pekerjaan atau artefak awal, tetapi belum memenuhi seluruh kriteria selesai. |
+| ✅ Selesai | Seluruh kriteria selesai telah dipenuhi dan bukti dapat diperiksa. |
+
 ## Keterlacakan tujuan
 
 | Tujuan penelitian | Paket kerja pembuktian |
@@ -13,16 +23,20 @@ Dokumen ini memecah penelitian menjadi pekerjaan yang dapat diverifikasi. Urutan
 
 ## WP0 - Reproduksibilitas dan tata kelola
 
+**Status: ✅ Selesai (diverifikasi 31 Oktober 2026).** Dummy run sintetis berhasil membuat manifest dan lolos validasi skema serta keberadaan artefak. Seluruh 13 pengujian WP0 lulus, termasuk larangan akses dataset, seed yang dapat direproduksi, isolasi artefak, dan hook Git yang menolak forced-add data terproteksi. `dataset/` dan `artifacts/` diabaikan Git; tidak ada path terproteksi pada index. Bukti dan perintah reproduksi ada di [reports/wp0-verification.md](reports/wp0-verification.md).
+
 **Tujuan:** menyiapkan fondasi agar data sensitif dan eksperimen terkelola dengan baik.
 
-- Buat struktur `configs/`, `src/`, `tests/`, `artifacts/`, dan `reports/` saat implementasi dimulai.
-- Tambahkan aturan ignore untuk data mentah, data turunan, checkpoint, log rinci, dan kredensial.
-- Tetapkan format run manifest: commit/version source, data manifest id, konfigurasi, seed, paket, GPU/CPU, dan timestamp.
-- Tetapkan kebijakan penamaan artefak dan mekanisme penyimpanan hasil agregat yang aman dibagikan.
+- [x] Buat struktur `configs/`, `src/`, `tests/`, `artifacts/`, dan `reports/` saat implementasi dimulai. Modul utilitas, test, dan laporan WP0 mengisi struktur sesuai kebutuhan.
+- [x] Tambahkan aturan ignore untuk data mentah, data turunan, checkpoint, log rinci, dan kredensial. Pemeriksaan lintas platform dan hook tersedia melalui `python -m src.utils.git_protection`.
+- [x] Tetapkan format run manifest: commit/version source, data manifest id, konfigurasi, seed, paket, GPU/CPU, dan timestamp. Skema v1, generator, serta validator tersedia di `configs/` dan `src/utils/manifest.py`.
+- [x] Tetapkan kebijakan penamaan artefak dan mekanisme penyimpanan hasil agregat yang aman dibagikan. Lihat `docs/reproducibility.md` dan `reports/README.md`.
 
 **Selesai bila:** satu run dummy dapat membuat manifest tanpa data SAP bocor ke Git.
 
 ## WP1 - Audit dan harmonisasi data SAP
+
+**Status: ⬜ Belum dimulai.** Belum ada modul ingest/audit, laporan kualitas data, atau data manifest yang dapat menjadi bukti penyelesaian.
 
 **Tujuan:** membangun dataset transaksi kanonis yang benar sebelum forecasting.
 
@@ -37,6 +51,8 @@ Dokumen ini memecah penelitian menjadi pekerjaan yang dapat diverifikasi. Urutan
 
 ## WP2 - Keputusan bisnis dan feature contract
 
+**Status: ⬜ Belum dimulai.** Belum ada hasil EDA terdokumentasi, keputusan target, validasi brand, atau feature contract.
+
 **Tujuan:** memastikan definisi peramalan dapat dijawab oleh data yang tersedia pada origin prediksi.
 
 - Konfirmasikan apakah `KP Date` adalah timestamp operasional yang dipakai untuk forecasting dan pahami arti `CRD Date`.
@@ -49,6 +65,8 @@ Dokumen ini memecah penelitian menjadi pekerjaan yang dapat diverifikasi. Urutan
 **Selesai bila:** `feature_contract` menjelaskan setiap kolom, transformasi, ketersediaan waktunya, serta alasan masuk/keluar dari model.
 
 ## WP3 - EDA, agregasi, dan dataset time series
+
+**Status: ⬜ Belum dimulai.** Belum ada artefak EDA agregat, panel mingguan, maupun aturan regularisasi kalender yang dapat diaudit.
 
 **Tujuan:** mengubah item transaksi menjadi panel time series yang siap dilatih.
 
@@ -63,6 +81,8 @@ Dokumen ini memecah penelitian menjadi pekerjaan yang dapat diverifikasi. Urutan
 
 ## WP4 - Split dan pembentukan window bebas leakage
 
+**Status: ⬜ Belum dimulai.** Batas split masih berupa usulan sempro; belum ada konfigurasi final, split manifest, atau test leakage.
+
 **Tujuan:** menghasilkan contoh train, validation, dan test yang sepenuhnya kronologis.
 
 - Audit kelengkapan periode dan finalkan batas kalender. Mulai dari usulan sempro: train Des 2023-Jun 2025, validation Jul-Agu 2025, test Sep-Nov 2025.
@@ -75,6 +95,8 @@ Dokumen ini memecah penelitian menjadi pekerjaan yang dapat diverifikasi. Urutan
 **Selesai bila:** test contract membuktikan batas waktu, scaler train-only, dan kesetaraan sample count pada tiga dataloader.
 
 ## WP5 - Implementasi model dengan interface seragam
+
+**Status: ⬜ Belum dimulai.** Belum ada implementasi model, interface bersama, maupun unit test model di repositori.
 
 **Tujuan:** membuat tiga implementasi dapat dilatih dan dievaluasi dengan kontrak yang sama.
 
@@ -89,6 +111,8 @@ Dokumen ini memecah penelitian menjadi pekerjaan yang dapat diverifikasi. Urutan
 
 ## WP6 - Protokol training yang adil
 
+**Status: ⬜ Belum dimulai.** Utilitas manifest dan dummy run tersedia dari WP0; belum ada runner training, konfigurasi resource/seed eksperimen, manifest hasil training, atau checkpoint.
+
 **Tujuan:** mencegah perbedaan hasil akibat perlakuan eksperimen yang tidak setara.
 
 - Tetapkan seed list, hardware, precision, batch policy, maximum epoch, early stopping, dan budget penalaan.
@@ -100,6 +124,8 @@ Dokumen ini memecah penelitian menjadi pekerjaan yang dapat diverifikasi. Urutan
 **Selesai bila:** setiap model memiliki jumlah run dan definisi resource yang sebanding atau deviasinya dijustifikasi dalam laporan.
 
 ## WP7 - Evaluasi dan analisis error
+
+**Status: ⬜ Belum dimulai.** Belum ada prediction artifact, implementasi metrik, atau analisis error test.
 
 **Tujuan:** menghasilkan hasil kuantitatif yang dapat dibandingkan langsung.
 
@@ -114,6 +140,8 @@ Dokumen ini memecah penelitian menjadi pekerjaan yang dapat diverifikasi. Urutan
 
 ## WP8 - Keputusan komparatif
 
+**Status: ⬜ Belum dimulai.** Belum ada hasil eksperimen tiga model yang dapat dibandingkan atau tabel keputusan final.
+
 **Tujuan:** membuat rekomendasi yang menjawab rumusan masalah, bukan sekadar memilih nilai metrik terkecil.
 
 - Bandingkan akurasi, variasi antar seed, waktu komputasi, jumlah parameter, dan interpretabilitas.
@@ -125,6 +153,8 @@ Dokumen ini memecah penelitian menjadi pekerjaan yang dapat diverifikasi. Urutan
 **Selesai bila:** tabel final dan narasi menjawab tiga rumusan masalah dengan bukti yang dapat direproduksi.
 
 ## WP9 - Pelaporan tugas akhir
+
+**Status: ⬜ Belum dimulai.** Belum ada Bab IV/V atau laporan hasil yang dapat ditautkan ke artefak eksperimen.
 
 **Tujuan:** menghubungkan hasil teknis ke struktur sempro dan rekomendasi praktis.
 

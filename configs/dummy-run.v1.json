@@ -1,0 +1,7 @@
+{
+  "config_version": "wp0-v1",
+  "model_name": "tft",
+  "seed": 42,
+  "data_mode": "synthetic-only",
+  "synthetic_sample_count": 8
+}

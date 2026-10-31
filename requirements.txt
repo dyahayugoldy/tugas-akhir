@@ -1,0 +1,2 @@
+# WP0 manifest validation; deep-learning dependencies are selected in WP5.
+jsonschema==4.25.1

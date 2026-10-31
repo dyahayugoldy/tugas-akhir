@@ -2,7 +2,7 @@
 
 Repositori ini menyiapkan implementasi penelitian tugas akhir berjudul **Analisis Komparatif Model Transformer untuk Prediksi Penjualan Ekspor Multivariat dengan Studi Kasus Data SAP Perusahaan XYZ**.
 
-Status saat ini: dokumentasi dan rancangan eksperimen. Pipeline, model, dan hasil eksperimen belum diimplementasikan dalam repositori ini.
+Status saat ini: fondasi reproduksibilitas dan tata kelola WP0 tersedia beserta dummy run sintetis dan pengujiannya. Pipeline SAP, model, dan hasil eksperimen belum diimplementasikan dalam repositori ini.
 
 ## Ringkasan penelitian
 
@@ -80,4 +80,14 @@ Setiap model harus menerima manifest data, target, split, horizon, dan protokol 
 5. Batas final train/validation/test setelah audit kelengkapan tanggal.
 6. Protokol penalaan hyperparameter yang adil, termasuk anggaran pencarian MoEBS.
 
-Tidak ada perintah eksekusi pada README ini karena kode belum ada. Tahap implementasi pertama adalah membangun audit data dan manifest yang dijelaskan pada [task-breakdown.md](task-breakdown.md).
+Untuk memverifikasi WP0 dari root repositori (Python 3.12):
+
+```powershell
+python -m pip install -r requirements.txt
+git config core.hooksPath .githooks
+python -m unittest discover -s tests -v
+python -m src.utils.manifest dummy --config configs/dummy-run.v1.json
+python -m src.utils.git_protection
+```
+
+Dummy run hanya memakai metadata sintetis dan tidak membaca XLSX SAP atau melatih model. Detail manifest, kebijakan artefak, dan langkah validasi ada di [docs/reproducibility.md](docs/reproducibility.md). Tahap berikutnya adalah WP1, audit dan harmonisasi data.
