@@ -1,0 +1,80 @@
+{
+  "config_version": "data-harmonization-v1",
+  "canonical_schema_version": "transactions-canonical-v1",
+  "active_cleaning_manifest": "artifacts/data/cleaned/clean-v2_20261104T040822Z_a4d0b0f7/cleaning_manifest.json",
+  "output_root": "artifacts/data/canonical",
+  "source_years": {
+    "2023.XLSX": 2023,
+    "2024.XLSX": 2024,
+    "2025.XLSX": 2025
+  },
+  "sheet_policy": {
+    "mode": "all_sheets"
+  },
+  "schema_assertions": {
+    "expected_column_count": 34,
+    "require_identical_headers": true,
+    "allow_extra_columns": false
+  },
+  "column_definitions": [
+    {"source_name": "Remark Item", "canonical_name": "remark_item", "logical_type": "string"},
+    {"source_name": "Sales Document Item", "canonical_name": "sales_document_item", "logical_type": "string"},
+    {"source_name": "Delivery Status Item", "canonical_name": "delivery_status_item", "logical_type": "string"},
+    {"source_name": "Sales office", "canonical_name": "sales_office", "logical_type": "string"},
+    {"source_name": "SO Type", "canonical_name": "so_type", "logical_type": "string"},
+    {"source_name": "Sales group", "canonical_name": "sales_group", "logical_type": "string"},
+    {"source_name": "Sales document", "canonical_name": "sales_document", "logical_type": "string"},
+    {"source_name": "Order", "canonical_name": "order", "logical_type": "string"},
+    {"source_name": "Search Term", "canonical_name": "search_term", "logical_type": "string"},
+    {"source_name": "Material", "canonical_name": "material", "logical_type": "string"},
+    {"source_name": "PO No. (Item)", "canonical_name": "po_number_item", "logical_type": "string"},
+    {"source_name": "Country Key", "canonical_name": "country_key", "logical_type": "string"},
+    {"source_name": "KP Date", "canonical_name": "kp_date", "logical_type": "date"},
+    {"source_name": "CRD Date", "canonical_name": "crd_date", "logical_type": "date"},
+    {"source_name": "Order Quantity (Item)", "canonical_name": "order_quantity_item", "logical_type": "numeric"},
+    {"source_name": "Net Price", "canonical_name": "net_price", "logical_type": "numeric"},
+    {"source_name": "Size", "canonical_name": "size", "logical_type": "string"},
+    {"source_name": "Color", "canonical_name": "color", "logical_type": "string"},
+    {"source_name": "Net Value (Item)", "canonical_name": "net_value_item", "logical_type": "numeric"},
+    {"source_name": "Season", "canonical_name": "season", "logical_type": "string"},
+    {"source_name": "Valuation Type", "canonical_name": "valuation_type", "logical_type": "string"},
+    {"source_name": "Shipping Type", "canonical_name": "shipping_type", "logical_type": "string"},
+    {"source_name": "Document Currency", "canonical_name": "document_currency", "logical_type": "string"},
+    {"source_name": "Old Item", "canonical_name": "old_item", "logical_type": "string"},
+    {"source_name": "Old PO Number", "canonical_name": "old_po_number", "logical_type": "string"},
+    {"source_name": "Item category", "canonical_name": "item_category", "logical_type": "string"},
+    {"source_name": "Delivery Status", "canonical_name": "delivery_status", "logical_type": "string"},
+    {"source_name": "Reason for Rejection", "canonical_name": "reason_for_rejection", "logical_type": "string"},
+    {"source_name": "Delivery Status Item Description", "canonical_name": "delivery_status_item_description", "logical_type": "string"},
+    {"source_name": "Search term 1", "canonical_name": "search_term_1", "logical_type": "string"},
+    {"source_name": "MD Name", "canonical_name": "md_name", "logical_type": "string"},
+    {"source_name": "SKUCODE", "canonical_name": "skucode", "logical_type": "string"},
+    {"source_name": "Setcode", "canonical_name": "setcode", "logical_type": "string"},
+    {"source_name": "WH Code", "canonical_name": "wh_code", "logical_type": "string"}
+  ],
+  "quality_policy": {
+    "primary_date_field": "kp_date",
+    "secondary_date_field": "crd_date",
+    "numeric_fields": ["order_quantity_item", "net_price", "net_value_item"],
+    "currency_field": "document_currency",
+    "primary_date_missing_or_invalid": "rejected",
+    "secondary_date_missing_or_invalid": "flagged",
+    "numeric_missing_or_invalid": "flagged",
+    "negative_numeric": "flagged",
+    "zero_numeric": "valid_counted_only",
+    "blank_currency": "flagged",
+    "crd_gap": {
+      "reference_field": "kp_date",
+      "comparison_field": "crd_date",
+      "rule": "comparison_minus_reference_days_gt_max_forward_days",
+      "max_forward_days": 730,
+      "action": "flag_only",
+      "feature_availability": "unverified_and_excluded_from_model_features"
+    },
+    "row_retention": "retain_all_rows_in_canonical_artifact"
+  },
+  "privacy_policy": {
+    "row_level_artifacts": "private_under_artifacts",
+    "reports_must_not_include": ["customer_names", "purchase_order_numbers", "transaction_values", "raw_rows"]
+  }
+}

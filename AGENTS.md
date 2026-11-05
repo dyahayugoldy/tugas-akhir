@@ -30,9 +30,9 @@ Keluaran akhir harus dapat menjawab model mana yang paling sesuai berdasarkan ak
 
 Tiga sumber SAP yang tersedia adalah:
 
-- `dataset/VAL 2023.XLSX`
-- `dataset/VAL 2024.XLSX`
-- `dataset/VAL 2025.XLSX`
+- `dataset/2023.XLSX`
+- `dataset/2024.XLSX`
+- `dataset/2025.XLSX`
 
 Data mentah SAP adalah data bisnis terbatas. Jangan mengunggahnya ke repositori publik, notebook pihak ketiga, issue tracker, atau layanan eksternal tanpa izin eksplisit. Jangan menulis nama perusahaan, pelanggan, nomor PO, atau nilai transaksi mentah pada README, log, gambar, maupun hasil yang dilacak Git.
 
@@ -46,7 +46,7 @@ Simpan data mentah sebagai read-only. Semua hasil transformasi harus dibuat seba
 - Sempro mengusulkan agregasi mingguan per kombinasi negara tujuan dan merek karena seri harian terlalu sparse.
 - Dataset tidak memiliki kolom bernama `Brand` secara eksplisit. Jangan menyamakan `Search Term`, `Search term 1`, `Sales group`, atau turunan `Material` dengan merek tanpa data dictionary atau validasi pemilik data.
 - `Delivery Status`, `Reason for Rejection`, dan status operasional lain berpotensi merupakan informasi pasca-transaksi. Perlakukan sebagai leakage sampai terbukti tersedia pada saat origin prediksi.
-- File 2023 dan 2024 memiliki 34 kolom, sedangkan 2025 memiliki 27 kolom. Harmonisasi skema wajib dicatat dan diuji.
+- Ketiga file 2023, 2024, dan 2025 masing-masing memiliki 34 kolom. Harmonisasi skema—termasuk nama, tipe, urutan, dan makna kolom—tetap wajib dicatat dan diuji.
 
 ## Struktur proyek yang dituju
 

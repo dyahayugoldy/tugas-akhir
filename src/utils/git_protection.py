@@ -10,7 +10,7 @@ PROTECTED_DIRS = {"dataset", "artifacts", "secrets", "logs", "mlruns", "wandb", 
 PROTECTED_SUFFIXES = {".xlsx", ".xls", ".parquet", ".pt", ".pth", ".ckpt", ".onnx",
                       ".safetensors", ".log", ".pem", ".key"}
 IGNORE_PROBES = (
-    "dataset/VAL 2023.XLSX", "dataset/VAL 2024.XLSX", "dataset/VAL 2025.XLSX",
+    "dataset/2023.XLSX", "dataset/2024.XLSX", "dataset/2025.XLSX",
     "artifacts/probe.json", "secrets/probe.txt", ".env", ".env.local",
     "nested/.env.local", "probe.pem", "probe.key", "probe.XLSX",
     "probe.parquet", "probe.ckpt", "probe.log", "logs/probe.txt",

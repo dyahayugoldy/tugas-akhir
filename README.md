@@ -2,7 +2,7 @@
 
 Repositori ini menyiapkan implementasi penelitian tugas akhir berjudul **Analisis Komparatif Model Transformer untuk Prediksi Penjualan Ekspor Multivariat dengan Studi Kasus Data SAP Perusahaan XYZ**.
 
-Status saat ini: fondasi reproduksibilitas dan tata kelola WP0 tersedia beserta dummy run sintetis dan pengujiannya. Pipeline SAP, model, dan hasil eksperimen belum diimplementasikan dalam repositori ini.
+Status saat ini: WP0 dan WP1 telah selesai. Pipeline WP1 membangun transaksi kanonis privat beserta audit skema, kualitas data, dan manifest yang dapat direproduksi. Model serta hasil eksperimen belum diimplementasikan.
 
 ## Ringkasan penelitian
 
@@ -22,14 +22,14 @@ Sumber data berada di `dataset/` dan terdiri dari ekstraksi modul Sales & Distri
 
 | Berkas | Jumlah transaksi menurut sempro | Skema |
 | --- | ---: | --- |
-| `VAL 2023.XLSX` | 22.459 | 34 kolom |
-| `VAL 2024.XLSX` | 60.052 | 34 kolom |
-| `VAL 2025.XLSX` | 35.655 | 27 kolom |
+| `2023.XLSX` | 22.459 | 34 kolom |
+| `2024.XLSX` | 60.052 | 34 kolom |
+| `2025.XLSX` | 35.655 | 34 kolom |
 | Total | 118.166 | Perlu harmonisasi lintas tahun |
 
 Sempro mendokumentasikan rentang sumber 15 Juli 2023 sampai 31 Desember 2025, dengan rentang efektif Desember 2023 sampai Desember 2025 setelah pemeriksaan awal. Sebanyak 303 transaksi dilaporkan tidak mempunyai tanggal valid. Seluruh angka ini harus diaudit kembali oleh pipeline sebelum dipakai sebagai dasar eksperimen.
 
-Kolom yang relevan antara lain `KP Date`, `CRD Date`, `Order Quantity (Item)`, `Net Price`, `Net Value (Item)`, `Country Key`, `Season`, `Document Currency`, `Material`, `Search Term`, dan status transaksi. Skema 2025 menghilangkan beberapa kolom yang tersedia pada 2023-2024, termasuk `Remark Item`, `Reason for Rejection`, `Search term 1`, `SKUCODE`, `Setcode`, dan `WH Code`.
+Kolom yang relevan antara lain `KP Date`, `CRD Date`, `Order Quantity (Item)`, `Net Price`, `Net Value (Item)`, `Country Key`, `Season`, `Document Currency`, `Material`, `Search Term`, dan status transaksi. Ketiga workbook memiliki header 34 kolom yang identik; pemetaan nama, tipe, dan status kualitasnya dibekukan dalam konfigurasi harmonisasi WP1.
 
 ### Catatan kualitas data
 
@@ -90,4 +90,10 @@ python -m src.utils.manifest dummy --config configs/dummy-run.v1.json
 python -m src.utils.git_protection
 ```
 
-Dummy run hanya memakai metadata sintetis dan tidak membaca XLSX SAP atau melatih model. Detail manifest, kebijakan artefak, dan langkah validasi ada di [docs/reproducibility.md](docs/reproducibility.md). Tahap berikutnya adalah WP1, audit dan harmonisasi data.
+Dummy run hanya memakai metadata sintetis dan tidak membaca XLSX SAP atau melatih model. Detail manifest, kebijakan artefak, dan langkah validasi ada di [docs/reproducibility.md](docs/reproducibility.md). Artefak WP1 bersifat privat di `artifacts/data/canonical/`; tahap berikutnya adalah WP2, keputusan bisnis dan feature contract.
+
+Untuk membuat ulang artefak WP1 dari manifest pembersihan aktif, jalankan perintah berikut dari root repositori. Perintah membuat direktori artefak baru dan tidak menimpa maupun mengubah workbook sumber.
+
+```powershell
+python -m src.data.harmonize_workbooks --config configs/data-harmonization.v1.json
+```

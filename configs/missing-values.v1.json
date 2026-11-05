@@ -1,0 +1,10 @@
+{
+  "config_version": "missing-v1",
+  "source_manifest": "artifacts/data/cleaned/clean-v1_20261104T031315Z_9f676a7e/cleaning_manifest.json",
+  "output_root": "artifacts/data/missing_values",
+  "threshold_percent": "0.5",
+  "comparison": "strictly_less_than",
+  "exclude_zero_missing": true,
+  "blank_values": ["null", "empty_string", "whitespace_only"],
+  "action": "profile_only"
+}

@@ -1,0 +1,18 @@
+{
+  "config_version": "date-gap-outliers-v1",
+  "enabled": true,
+  "active_data_manifest": "artifacts/data/cleaned/clean-v2_20261104T040822Z_a4d0b0f7/cleaning_manifest.json",
+  "output_root": "artifacts/data_quality/date_gap_outliers",
+  "date_columns": {
+    "reference": "KP Date",
+    "comparison": "CRD Date"
+  },
+  "gap_definition": "absolute_calendar_day_difference",
+  "days_per_year": 365,
+  "accepted_gap_days": {
+    "minimum_inclusive": 365,
+    "maximum_inclusive": 730
+  },
+  "outlier_rule": "absolute_gap_days < 365 OR absolute_gap_days > 730",
+  "raw_data_policy": "read_only"
+}

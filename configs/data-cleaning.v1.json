@@ -1,0 +1,22 @@
+{
+  "config_version": "clean-v1",
+  "enabled": false,
+  "status": "superseded_by_user_policy",
+  "replacement_config": "configs/data-cleaning.v2.json",
+  "sources": [
+    "dataset/2023.XLSX",
+    "dataset/2024.XLSX",
+    "dataset/2025.XLSX"
+  ],
+  "output_root": "artifacts/data/cleaned",
+  "duplicates": {
+    "scope": "within_each_sheet",
+    "compare": "all_original_columns",
+    "keep": "first"
+  },
+  "empty_columns": {
+    "condition": "all_cells_blank",
+    "blank_values": ["null", "empty_string", "whitespace_only"],
+    "preserve_literal_na_strings": true
+  }
+}

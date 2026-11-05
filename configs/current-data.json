@@ -1,0 +1,16 @@
+{
+  "config_version": "current-data-v1",
+  "active_cleaning_config": "configs/data-cleaning.v2.json",
+  "active_manifest": "artifacts/data/cleaned/clean-v2_20261104T040822Z_a4d0b0f7/cleaning_manifest.json",
+  "missingness_report": "artifacts/data/cleaned/clean-v2_20261104T040822Z_a4d0b0f7/missingness_by_column.csv",
+  "harmonization_config": "configs/data-harmonization.v1.json",
+  "active_data_manifest": "artifacts/data/canonical/data-harmonization-v1_20261105T122845Z_8adc4a76/data_manifest.json",
+  "active_schema_report": "artifacts/data/canonical/data-harmonization-v1_20261105T122845Z_8adc4a76/schema_report.json",
+  "active_data_quality_report": "artifacts/data/canonical/data-harmonization-v1_20261105T122845Z_8adc4a76/data_quality_report.json",
+  "canonical_schema_version": "transactions-canonical-v1",
+  "column_missingness_policy": "preserve_all_columns_including_entirely_empty_columns",
+  "superseded_column_deletion_runs": [
+    "clean-v1_20261104T031315Z_9f676a7e",
+    "drop-missing-cols-v1_20261104T034253Z_51aa5fe7"
+  ]
+}

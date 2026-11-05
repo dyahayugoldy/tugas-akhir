@@ -1,0 +1,20 @@
+{
+  "config_version": "clean-v2",
+  "enabled": true,
+  "sources": ["dataset/2023.XLSX", "dataset/2024.XLSX", "dataset/2025.XLSX"],
+  "output_root": "artifacts/data/cleaned",
+  "duplicates": {
+    "scope": "within_each_sheet",
+    "compare": "all_original_columns",
+    "keep": "first"
+  },
+  "empty_columns": {
+    "condition": "preserve_all",
+    "blank_values": ["null", "empty_string", "whitespace_only"],
+    "preserve_literal_na_strings": true
+  },
+  "restoration_evidence": {
+    "duplicate_audit_manifest": "artifacts/data/cleaned/clean-v1_20261104T031315Z_9f676a7e/cleaning_manifest.json",
+    "missingness_audit": "artifacts/data/missing_values/missing-v1_20261104T033854Z_4925985f/missingness_report.json"
+  }
+}

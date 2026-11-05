@@ -1,2 +1,6 @@
 # WP0 manifest validation; deep-learning dependencies are selected in WP5.
 jsonschema==4.25.1
+
+# Local SAP workbook audit and reproducible cleaning.
+pandas==2.3.3
+openpyxl==3.1.5

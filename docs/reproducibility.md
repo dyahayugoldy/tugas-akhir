@@ -47,6 +47,16 @@ artifacts/
 
 Keep raw inputs read-only: WP0 never opens or modifies SAP workbooks. Later ingestion must open them only for reading. Keep canonical transactions, aggregated panels, feature tensors, and split indexes in separate subdirectories under `artifacts/data/<data_manifest_id>/`; never overwrite a previous version. Use new manifest IDs when transformations change. Checkpoints, detailed predictions, logs, and metrics remain under the corresponding run directory. See `reports/README.md` for the disclosure review record required before tracking aggregate reports.
 
+## WP1 canonical data
+
+WP1 is reproduced from the active verified cleaning manifest with:
+
+```powershell
+python -m src.data.harmonize_workbooks --config configs/data-harmonization.v1.json
+```
+
+The command verifies source and cleaned-input checksums before and after reading. It writes a new private directory under `artifacts/data/canonical/` containing `canonical_transactions.csv.gz`, `schema_report.json`, `data_quality_report.json`, and `data_manifest.json`. Every source row is retained with a `valid`, `flagged`, or `rejected` quality status; no imputation, row deletion, currency conversion, or feature selection occurs in WP1. Review the generated manifest and then deliberately update `configs/current-data.json` before a later stage consumes a new canonical run.
+
 ## Git data protection
 
 - `dataset/`, `artifacts/`, `secrets/`, `.env*` (except `.env.example`), PEM/key files, workbooks, checkpoints, detailed logs, and Parquet files are ignored. Extension checks include uppercase copies.

@@ -1,0 +1,13 @@
+{
+  "config_version": "drop-missing-cols-v1",
+  "enabled": false,
+  "status": "cancelled_by_user",
+  "replacement_config": "configs/data-cleaning.v2.json",
+  "source_audit": "artifacts/data/missing_values/missing-v1_20261104T033854Z_4925985f/missingness_report.json",
+  "output_root": "artifacts/data/cleaned",
+  "action": "drop_columns",
+  "threshold_percent": "0.5",
+  "comparison": "strictly_less_than",
+  "exclude_zero_missing": true,
+  "preserve_all_rows": true
+}

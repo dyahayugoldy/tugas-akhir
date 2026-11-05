@@ -4,7 +4,7 @@ Dokumen ini memecah penelitian menjadi pekerjaan yang dapat diverifikasi. Urutan
 
 ## Indikator status
 
-Status di bawah diaudit pada 31 Oktober 2026 berdasarkan artefak yang ada di repositori. Status `✅ Selesai` hanya dipakai setelah seluruh kriteria pada bagian **Selesai bila** dapat dibuktikan.
+Status di bawah diaudit hingga 5 November 2026 berdasarkan artefak yang ada di repositori. Status `✅ Selesai` hanya dipakai setelah seluruh kriteria pada bagian **Selesai bila** dapat dibuktikan.
 
 | Indikator | Arti |
 | --- | --- |
@@ -36,18 +36,40 @@ Status di bawah diaudit pada 31 Oktober 2026 berdasarkan artefak yang ada di rep
 
 ## WP1 - Audit dan harmonisasi data SAP
 
-**Status: ⬜ Belum dimulai.** Belum ada modul ingest/audit, laporan kualitas data, atau data manifest yang dapat menjadi bukti penyelesaian.
+**Status: ✅ Selesai (diverifikasi 5 November 2026).** Tiga workbook SAP historis tahun 2023, 2024, dan 2025 telah diverifikasi, diharmonisasi menjadi transaksi kanonis privat, dan dibekukan melalui manifest data. Seluruh baris dipertahankan dengan status kualitas `valid`, `flagged`, atau `rejected`; tidak ada imputasi maupun penghapusan transaksi saat WP1.
+
+**Cakupan sumber aktif:**
+
+| Tahun sumber | Berkas lokal aktif | Kolom sumber | Peran dalam WP1 |
+| --- | --- | ---: | --- |
+| 2023 | `dataset/2023.XLSX` | 34 | Audit, harmonisasi, dan provenance `source_year=2023` |
+| 2024 | `dataset/2024.XLSX` | 34 | Audit, harmonisasi, dan provenance `source_year=2024` |
+| 2025 | `dataset/2025.XLSX` | 34 | Audit, harmonisasi, dan provenance `source_year=2025` |
+
+Nama berkas sumber, checksum, dan manifest aktif harus selalu diambil dari konfigurasi versi (`configs/current-data.json` dan konfigurasi pembersihan aktif), bukan di-hard-code pada modul. Jika nama sumber resmi berubah, konfigurasi, dokumentasi, dan manifest harus diperbarui bersama sebelum pipeline dijalankan ulang.
+
+**Bukti audit awal yang tersedia:**
+
+- Profil numerik, kategorikal, temporal, nilai kategorikal, serta kandidat outlier IQR telah dibuat sebagai artefak privat.
+- Tidak ditemukan baris duplikat identik pada ketiga dataset ketika seluruh kolom sumber dibandingkan.
+- Kolom numerik `Order Quantity (Item)`, `Net Price`, dan `Net Value (Item)` tidak memiliki sel kosong pada 2023, 2024, maupun 2025.
+- Terdapat lima kolom yang seluruh nilainya kosong pada ketiga dataset: `Reason for Rejection`, `Delivery Status Item Description`, `SKUCODE`, `Setcode`, dan `WH Code`. Kebijakan pembersihan aktif mempertahankan semua kolom pada artefak turunan awal; kolom tersebut ditandai sebagai kandidat dikeluarkan dari proyeksi kanonis/feature contract setelah keputusan yang terdokumentasi. Berkas mentah tetap read-only.
+- Audit tanggal menemukan 11 baris pada dataset 2023 dengan `CRD Date` tahun 2026–2030; semuanya memiliki `CRD Date` lebih dari dua tahun setelah `KP Date`. Temuan ini adalah kandidat anomali, bukan alasan otomatis untuk menghapus baris. Arti bisnis dan waktu ketersediaan `CRD Date` harus dikonfirmasi sebelum aturan directional maupun absolute-gap dibekukan atau kolom dipakai sebagai fitur model.
+- Run `data-harmonization-v1_20261105T122845Z_8adc4a76` menghasilkan `schema_report`, `data_quality_report`, transaksi kanonis berprovenance, dan `data_manifest` di `artifacts/data/canonical/`. Manifest aktif dicatat dalam `configs/current-data.json`; artefak rinci tetap privat dan tidak dilacak Git.
 
 **Tujuan:** membangun dataset transaksi kanonis yang benar sebelum forecasting.
 
-- Baca tiga XLSX tanpa mengubah berkas sumber.
-- Bandingkan nama, tipe, dan kelengkapan kolom setiap tahun.
-- Normalisasi nama kolom dan tipe data; tambahkan `source_file` dan `source_year` untuk audit.
-- Validasi jumlah baris, tanggal minimum/maksimum, nilai tanggal kosong/tidak valid, duplikasi, nilai numerik tidak wajar, dan distribusi currency.
-- Dokumentasikan perbedaan 34 kolom pada 2023-2024 versus 27 kolom pada 2025, termasuk aturan pengisian `null` yang sah.
-- Buat `data_quality_report` dan `data_manifest` berisi checksum sumber, statistik audit, skema versi, serta keputusan pembersihan.
+- [x] Daftarkan tiga sumber 2023–2025 pada konfigurasi aktif dan baca XLSX secara read-only; setiap run wajib memverifikasi checksum sumber sebelum dan sesudah pemrosesan.
+- [x] Buat profil awal per workbook/sheet untuk duplikasi identik, missingness, tipe awal, nilai kategorikal, nilai numerik, tanggal, dan kandidat outlier. Artefak detail tetap privat di `artifacts/`.
+- [x] Buat matriks skema lintas tahun: nama kolom asli, nama normalisasi, tipe sumber, tipe kanonis, keberadaan per tahun, serta alasan setiap perbedaan skema meskipun ketiga workbook masing-masing memiliki 34 kolom.
+- [x] Tetapkan aturan harmonisasi yang terversi untuk setiap kolom: nama baku, parser/koersi tipe, nilai `null` yang sah, dan status `required`, `optional`, atau `excluded_pending_review`. Jika suatu kolom tidak tersedia pada salah satu tahun, nilainya harus menjadi `null` eksplisit dalam skema kanonis, tidak diisi nilai rekaan.
+- [x] Normalisasi kolom dan tipe data ke transaksi kanonis; tambahkan `source_file`, `source_year`, `source_sheet`, dan penanda/nomor baris sumber yang hanya disimpan pada artefak privat untuk audit lineage.
+- [x] Validasi per sumber dan gabungan: jumlah baris sebelum/sesudah, tanggal minimum/maksimum, tanggal kosong/tidak valid, duplikasi intra- dan lintas-tahun, nilai negatif/nol/tidak wajar, serta distribusi `Document Currency`.
+- [x] Bekukan kebijakan tanggal `KP Date`/`CRD Date`: dokumentasikan arti bisnis, parser, nilai invalid, dan apakah kandidat selisih tanggal dipertahankan, ditandai, atau ditolak. Audit exploratory tidak boleh menghapus transaksi tanpa aturan yang telah disetujui.
+- [x] Pertahankan seluruh kolom pada artefak pembersihan awal sesuai kebijakan aktif. Untuk lima kolom yang 100% kosong, catat bukti dan keputusan terpisah apakah dikecualikan dari proyeksi kanonis dan feature contract; jangan mengubah berkas mentah atau menghapus diam-diam.
+- [x] Buat `data_quality_report`, `schema_report`, dan `data_manifest` berisi checksum sumber, statistik audit per tahun, pemetaan skema, keputusan pembersihan, versi skema, dan lokasi artefak turunan.
 
-**Selesai bila:** seluruh transaksi memiliki status valid/ditolak yang dapat dijelaskan, dan tidak ada pembersihan yang hanya terjadi diam-diam di notebook.
+**Selesai bila:** ketiga sumber 2023–2025 tercakup dalam satu manifest yang dapat direproduksi; setiap transaksi memiliki status valid/ditandai/ditolak serta alasan yang dapat diaudit; matriks skema tiga workbook berisi 34 kolom dan aturan `null` telah diuji; transaksi kanonis membawa provenance sumber; dan tidak ada pembersihan yang hanya terjadi diam-diam di notebook.
 
 ## WP2 - Keputusan bisnis dan feature contract
 

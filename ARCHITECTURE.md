@@ -37,12 +37,12 @@ Tidak ada komponen deployment, API SAP, dashboard operasional, atau write-back k
 
 | Atribut | 2023 | 2024 | 2025 |
 | --- | ---: | ---: | ---: |
-| Nama berkas | `VAL 2023.XLSX` | `VAL 2024.XLSX` | `VAL 2025.XLSX` |
+| Nama berkas | `2023.XLSX` | `2024.XLSX` | `2025.XLSX` |
 | Transaksi menurut sempro | 22.459 | 60.052 | 35.655 |
-| Jumlah kolom | 34 | 34 | 27 |
+| Jumlah kolom | 34 | 34 | 34 |
 | Penanda waktu | `KP Date`, `CRD Date` | `KP Date`, `CRD Date` | `KP Date`, `CRD Date` |
 
-Kolom inti lintas tahun mencakup identitas transaksi/item, `Country Key`, `KP Date`, `CRD Date`, `Order Quantity (Item)`, `Net Price`, `Net Value (Item)`, `Season`, `Document Currency`, `Material`, dan beberapa atribut organisasi/produk. Kolom yang hilang pada 2025 harus tetap tercatat sebagai `null` dalam skema kanonis, bukan diisi dengan nilai rekaan.
+Kolom inti lintas tahun mencakup identitas transaksi/item, `Country Key`, `KP Date`, `CRD Date`, `Order Quantity (Item)`, `Net Price`, `Net Value (Item)`, `Season`, `Document Currency`, `Material`, dan beberapa atribut organisasi/produk. Jika matriks skema menemukan kolom yang tidak tersedia pada suatu tahun, nilainya harus tetap tercatat sebagai `null` dalam skema kanonis, bukan diisi dengan nilai rekaan.
 
 Setiap transaksi kanonis minimal membawa:
 
@@ -173,9 +173,11 @@ Skala normalisasi harus dikembalikan ke satuan target sebelum metrik akhir dihit
 
 ```text
 artifacts/
-  data/<manifest_id>/
+  data/canonical/<manifest_id>/
+    canonical_transactions.csv.gz
     quality_report.json
     schema_report.json
+    data_manifest.json
     feature_contract.json
     split_manifest.json
   runs/<run_id>/
