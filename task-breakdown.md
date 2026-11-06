@@ -73,18 +73,40 @@ Nama berkas sumber, checksum, dan manifest aktif harus selalu diambil dari konfi
 
 ## WP2 - Keputusan bisnis dan feature contract
 
-**Status: ⬜ Belum dimulai.** Belum ada hasil EDA terdokumentasi, keputusan target, validasi brand, atau feature contract.
+**Status: 🔄 Sebagian selesai (dijalankan dan diverifikasi 5 November 2026).** Pipeline filter, pemetaan buyer, konfigurasi versi, `feature_contract` untuk 34 kolom, EDA target privat, dan manifest bersama sudah tersedia. Run aktif `business-selection-v2_20261105T143150Z_76206da8` mempertahankan 163.016 dari 180.246 baris; 17.230 baris unik dikeluarkan. Satuan target telah dikonfirmasi pcs, dan 4.928 baris tanpa negara dipertahankan sebagai `__UNKNOWN_COUNTRY__` sesuai keputusan pengguna, tanpa quality hold. Tidak ada `Sales group` kosong pada setiap tahun sebelum/sesudah filter. Seluruh 34 pengujian unittest dan satu regression test tanggal lulus. WP2 belum ditutup karena pemetaan brand/fallback masih menunggu konfirmasi. Bukti dan perintah reproduksi tersedia di [reports/wp2-verification.md](reports/wp2-verification.md).
 
 **Tujuan:** memastikan definisi peramalan dapat dijawab oleh data yang tersedia pada origin prediksi.
 
-- Konfirmasikan apakah `KP Date` adalah timestamp operasional yang dipakai untuk forecasting dan pahami arti `CRD Date`.
-- Validasi field atau aturan derivasi brand. Jangan memakai proksi brand sebelum pemilik data menyetujuinya.
-- Bandingkan kandidat target `Order Quantity (Item)` dan `Net Value (Item)` melalui EDA: missingness, nilai nol/negatif, volatilitas, sparsity, dan relevansi bisnis.
-- Bekukan target utama, satuan, dan formula agregasinya. Bila nilai penjualan dipilih, konversi IDR ke USD dengan tabel kurs historis yang terversi dan dapat diaudit.
-- Kelompokkan fitur menjadi static categorical, known future, observed past, dan forbidden/leakage.
-- Tentukan fallback bila brand tidak bisa dipetakan: misalnya seri per negara x kategori produk tervalidasi, atau pengubahan rancangan dengan persetujuan pembimbing.
+**Keputusan bisnis yang menjadi acuan WP2:**
 
-**Selesai bila:** `feature_contract` menjelaskan setiap kolom, transformasi, ketersediaan waktunya, serta alasan masuk/keluar dari model.
+| Aspek | Keputusan |
+| --- | --- |
+| `KP Date` | Tanggal dibuatnya Kartu Produksi (KP). Tetap menjadi kolom waktu utama sesuai kontrak data awal. |
+| `CRD Date` | Tanggal keberangkatan ekspor. Arti bisnis sudah ditetapkan; ketersediaannya pada origin prediksi tetap harus divalidasi sebelum dipakai sebagai fitur. |
+| Mata uang | Keluarkan seluruh baris dengan `Document Currency = IDR` dari dataset analisis/model. |
+| Buyer | Gunakan kolom sumber `Sales group` (`sales_group` pada skema kanonis) sebagai kode buyer sesuai konfirmasi bisnis. Keluarkan seluruh baris dengan kode buyer `PEB`, `KWK`, `LNS`, dan `CPC` pada kolom tersebut. |
+| Negara tujuan | Keluarkan seluruh baris dengan `Country Key = ID` dari seluruh sumber tahun 2023–2025. Negara kosong dipertahankan sebagai kategori `__UNKNOWN_COUNTRY__` dengan indikator audit asal kosong; negara lainnya tetap dipertahankan. |
+| Target utama | Gunakan `Order Quantity (Item)` (`order_quantity_item` pada skema kanonis) dalam pcs, dengan agregasi penjumlahan per seri-minggu setelah seri tervalidasi. Kuantitas pecahan tetap dipertahankan tanpa pembulatan. `Net Value (Item)` tidak menjadi target utama. |
+| Harga nol | Keluarkan seluruh baris dengan `Net Price` bernilai numerik nol, termasuk representasi `0` dan `0.00`. |
+
+**Tugas dan verifikasi:**
+
+- [x] Catat definisi bisnis `KP Date` dan `CRD Date`, pilihan target utama, serta aturan eksklusi di atas.
+- [x] Tetapkan pemetaan buyer: kolom sumber `Sales group` → kolom kanonis `sales_group` → peran bisnis kode buyer, berdasarkan konfirmasi bisnis. Pemetaan ini tidak menetapkan buyer sebagai brand.
+- [x] Terapkan dan uji pemetaan buyer dari `sales_group` pada seluruh sumber 2023–2025, termasuk normalisasi kode, kebijakan nilai kosong, serta eksklusi `PEB`, `KWK`, `LNS`, dan `CPC`; simpan pemetaan dalam konfigurasi versi dan `feature_contract`.
+- [x] Simpan keputusan tanggal, target pcs, dan seluruh aturan filter dalam `configs/business-selection.v2.json` serta `configs/feature-contract.v2.json`. Kode kategorikal di-trim dan dikapitalisasi; harga diparse sebagai desimal finite. Nilai kosong/tidak valid dipertahankan dengan quality hold, kecuali negara kosong yang menjadi kategori unknown berdasarkan keputusan pengguna; tidak ada nilai yang dianggap nol secara otomatis. Versi v1 tetap disimpan untuk audit.
+- [x] Terapkan satu aturan eksklusi yang sama pada transaksi kanonis dari ketiga sumber sebelum EDA WP3, agregasi, dan split. Baris dikeluarkan bila memenuhi setidaknya satu aturan mata uang, buyer, negara, atau harga nol. Hasil disimpan sebagai artefak turunan baru yang dipakai bersama oleh ketiga model; berkas mentah dan artefak audit WP1 tetap dipertahankan.
+- [x] Buat laporan filter per tahun dan gabungan: jumlah baris sebelum/sesudah, jumlah yang cocok dengan setiap aturan, overlap antaraturan, serta total baris unik yang dikeluarkan agar tidak terhitung ganda. Alasan eksklusi dan lineage tersimpan pada artefak privat; laporan yang dilacak Git hanya memuat ringkasan agregat yang aman.
+- [x] Verifikasi hasil filter tidak memuat mata uang `IDR`, buyer yang dikecualikan, negara `ID`, maupun `Net Price = 0`; pengujian mencakup representasi harga `0`/`0.00`, normalisasi kode, nilai kosong/invalid, dan overlap. Checksum sumber, manifest input/output, serta pembacaan ulang hasil membuktikan integritas artefak.
+- [x] Lakukan EDA deskriptif `Order Quantity (Item)` sebelum/sesudah filter: missingness, nol/negatif, kuantitas pecahan, volatilitas mingguan, dan sparsity diagnostik per negara. Statistik rinci tetap privat dan tidak dipakai untuk fitting atau penalaan; diagnostik ini belum merupakan panel seri final.
+- [x] Konfirmasikan satuan pcs dan bekukan formula penjumlahan target per `series_id`-minggu setelah seri tervalidasi. Hasil filter memiliki 450 kuantitas pecahan yang tetap dipertahankan tanpa pembulatan. Konversi IDR ke USD tidak diperlukan untuk target kuantitas; fitur moneter dikecualikan sambil menunggu kontrak mata uang dan ketersediaannya.
+- [x] Terapkan keputusan pengguna untuk mempertahankan 4.928 baris tanpa `Country Key` sebagai `__UNKNOWN_COUNTRY__`, dengan indikator audit `wp2_country_was_missing`. Token ini berbeda dari token encoder `__UNKNOWN__` untuk kategori baru. Tidak ada quality hold negara kosong atau penghapusan tambahan; data mentah/kanonis tetap utuh.
+- [x] Verifikasi `Sales group` kosong: 0 baris pada masing-masing tahun 2023, 2024, dan 2025, baik sebelum maupun sesudah filter; statistik tersimpan pada `selection_report.json`.
+- [x] Dokumentasikan waktu ketersediaan setiap fitur dan kelompokkan menjadi static categorical, known future, observed past, dan forbidden/leakage. `CRD Date` dilarang sebagai fitur sampai tersedia bukti pada origin; definisi tanggal tidak menetapkan ambang penghapusan selisih tanggal. Tidak ada fit scaler/encoder atau imputasi statistik pada WP2.
+- [ ] Validasi field atau aturan derivasi brand. Tidak ada data dictionary/mapping resmi yang tersedia; seluruh kandidat tetap dikecualikan dari peran brand.
+- [ ] Setujui fallback bila brand tidak bisa dipetakan. Kontrak mencatat usulan seri per negara saja sebagai opsi yang memerlukan konfirmasi pengguna/pembimbing sebelum digunakan; buyer tidak dijadikan brand.
+
+**Selesai bila:** konfigurasi versi dan `feature_contract` menetapkan definisi tanggal, pemetaan `Sales group`/`sales_group` sebagai buyer, target kuantitas beserta satuan/agregasinya, seluruh aturan eksklusi, serta transformasi dan ketersediaan waktu setiap kolom. Artefak turunan dan laporan sebelum/sesudah membuktikan pemetaan buyer dan filter diterapkan pada seluruh sumber 2023–2025, pengujian eksklusi lulus, dan satu manifest hasil filter menjadi acuan ketiga model.
 
 ## WP3 - EDA, agregasi, dan dataset time series
 

@@ -11,3 +11,4 @@ customers, purchase orders, or individual transaction values must be suppressed
 or combined. Never copy data directly from `dataset/` into this directory.
 
 WP0 verification evidence is recorded in `wp0-verification.md`.
+WP2 business-filter verification and outstanding decisions are recorded in `wp2-verification.md`.

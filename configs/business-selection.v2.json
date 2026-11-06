@@ -1,0 +1,89 @@
+{
+  "config_version": "business-selection-v2",
+  "current_data_pointer": "configs/current-data.json",
+  "harmonization_config": "configs/data-harmonization.v1.json",
+  "feature_contract": "configs/feature-contract.v2.json",
+  "output_root": "artifacts/data/business_selected",
+  "source_years": [
+    2023,
+    2024,
+    2025
+  ],
+  "category_normalization": "strip_upper",
+  "filters": [
+    {
+      "id": "currency_idr",
+      "field": "document_currency",
+      "operator": "in",
+      "values": [
+        "IDR"
+      ]
+    },
+    {
+      "id": "buyer_excluded",
+      "field": "sales_group",
+      "operator": "in",
+      "values": [
+        "PEB",
+        "KWK",
+        "LNS",
+        "CPC"
+      ]
+    },
+    {
+      "id": "country_id",
+      "field": "country_key",
+      "operator": "in",
+      "values": [
+        "ID"
+      ]
+    },
+    {
+      "id": "net_price_zero",
+      "field": "net_price",
+      "operator": "numeric_equal",
+      "value": "0"
+    }
+  ],
+  "quality_policy": {
+    "date_field": "kp_date",
+    "target_field": "order_quantity_item",
+    "numeric_fields": [
+      "order_quantity_item",
+      "net_price",
+      "net_value_item"
+    ],
+    "required_codes": [
+      "sales_group",
+      "country_key",
+      "document_currency"
+    ],
+    "missing_invalid": "retain_with_hold_no_imputation",
+    "negative_numeric": "retain_with_hold_pending_business_review",
+    "zero_target": "retain_observed_zero",
+    "duplicates": "retain_report_only",
+    "date_gap": "retain_wp1_flags_no_additional_gap_filter",
+    "categorical_missing": {
+      "country_key": {
+        "action": "explicit_unknown",
+        "token": "__UNKNOWN_COUNTRY__",
+        "indicator": "wp2_country_was_missing",
+        "decision": "User approved retaining missing destination as unknown"
+      }
+    }
+  },
+  "eda": {
+    "week_frequency": "W-SUN",
+    "candidate_group_fields": [
+      "country_key"
+    ],
+    "quantiles": [
+      0.25,
+      0.5,
+      0.75,
+      0.95
+    ],
+    "scope": "descriptive_only_no_fitting_or_model_selection",
+    "weekly_diagnostics": "quantity_pcs_descriptive_not_final_model_panel"
+  }
+}

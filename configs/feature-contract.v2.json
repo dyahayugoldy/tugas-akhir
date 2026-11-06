@@ -1,0 +1,327 @@
+{
+  "contract_version": "feature-contract-v2",
+  "decision_date": "2026-11-05",
+  "decision_source": "User business decisions recorded in task-breakdown.md WP2",
+  "buyer_mapping": {
+    "source": "Sales group",
+    "canonical": "sales_group",
+    "role": "buyer_code",
+    "status": "business_confirmed",
+    "normalization": "strip_upper"
+  },
+  "time": {
+    "primary": "kp_date",
+    "kp_meaning": "Tanggal dibuatnya Kartu Produksi",
+    "crd_meaning": "Tanggal keberangkatan ekspor",
+    "crd_availability": "unverified_excluded",
+    "week_frequency": "W-SUN",
+    "week_start": "Monday"
+  },
+  "target": {
+    "field": "order_quantity_item",
+    "source": "Order Quantity (Item)",
+    "status": "business_confirmed",
+    "unit": "pcs",
+    "unit_status": "business_confirmed",
+    "aggregation": "sum",
+    "aggregation_gate": "common_quantity_unit_pcs_confirmed",
+    "zero": "retain",
+    "missing_or_negative": "hold_pending_review",
+    "currency_conversion": "not_applicable_to_quantity",
+    "fractional_values": "preserve_without_rounding_report_as_quality_observation"
+  },
+  "series": {
+    "fields": [
+      "country_key",
+      "validated_brand_or_category_key"
+    ],
+    "brand_mapping": null,
+    "status": "requires_business_mapping",
+    "fallback_proposal": "country_only",
+    "fallback_status": "requires_user_and_supervisor_approval_before_use",
+    "buyer_is_brand": false
+  },
+  "preprocessing": {
+    "category_fit": "train_only",
+    "unknown_token": "__UNKNOWN__",
+    "missing_token": "__MISSING__",
+    "numeric_fit": "train_only",
+    "tensor_dtype": "float32",
+    "zero_fill_calendar": "requires_business_confirmation_in_WP3",
+    "monetary_features": "excluded_pending_currency_and_availability_contract"
+  },
+  "derived_features": [
+    {
+      "name": "calendar",
+      "class": "known_future",
+      "transform": "derive_from_week_start_only",
+      "availability": "calendar_known_before_origin"
+    },
+    {
+      "name": "target_lags",
+      "class": "observed_past",
+      "transform": "shift_within_validated_series",
+      "availability": "source_event_time_and_availability_time_must_be_at_or_before_origin",
+      "status": "build_in_WP3_after_series_unit_validation"
+    }
+  ],
+  "columns": [
+    {
+      "field": "remark_item",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "unverified",
+      "reason": "Unstructured operational text and possible identifiers"
+    },
+    {
+      "field": "sales_document_item",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "not_required",
+      "reason": "Transaction identifier retained privately for lineage"
+    },
+    {
+      "field": "delivery_status_item",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "potential_post_transaction",
+      "reason": "Operational status leakage"
+    },
+    {
+      "field": "sales_office",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "unverified",
+      "reason": "No confirmed origin-time or static-series contract"
+    },
+    {
+      "field": "so_type",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "unverified",
+      "reason": "Transaction attribute availability unconfirmed"
+    },
+    {
+      "field": "sales_group",
+      "class": "forbidden",
+      "transform": "strip_upper_for_buyer_filter_only",
+      "availability": "buyer_mapping_confirmed_feature_timing_unverified",
+      "reason": "Buyer filter; not brand or a confirmed static series feature"
+    },
+    {
+      "field": "sales_document",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "not_required",
+      "reason": "Private transaction identifier"
+    },
+    {
+      "field": "order",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "not_required",
+      "reason": "Private order identifier"
+    },
+    {
+      "field": "search_term",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "unverified",
+      "reason": "No validated brand mapping; may contain sensitive identity"
+    },
+    {
+      "field": "material",
+      "class": "forbidden",
+      "transform": "exclude_pending_validated_mapping",
+      "availability": "unverified",
+      "reason": "Material is not automatically brand or category"
+    },
+    {
+      "field": "po_number_item",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "not_required",
+      "reason": "Private purchase-order identifier"
+    },
+    {
+      "field": "country_key",
+      "class": "static_categorical",
+      "transform": "strip_upper_then_blank_to_reserved_unknown_country_then_train_only_vocabulary",
+      "availability": "series_identity_known_at_origin",
+      "reason": "Destination series identity after ID exclusion; blank destination retained as approved unknown country"
+    },
+    {
+      "field": "kp_date",
+      "class": "time_index",
+      "transform": "canonical_ISO_date_then_week_start",
+      "availability": "KP_creation_event_time",
+      "reason": "Primary time index; missing/invalid held; data capture latency must be checked in WP3"
+    },
+    {
+      "field": "crd_date",
+      "class": "forbidden",
+      "transform": "exclude_preserve_for_audit",
+      "availability": "unverified",
+      "reason": "Export departure date may only be realized after origin"
+    },
+    {
+      "field": "order_quantity_item",
+      "class": "target_and_observed_past",
+      "transform": "finite_decimal_pcs_then_sum_within_validated_series_week",
+      "availability": "past_only_at_or_before_origin_no_future_quantity_covariate",
+      "reason": "Business-confirmed primary target in pcs; fractional source values preserved without rounding"
+    },
+    {
+      "field": "net_price",
+      "class": "forbidden",
+      "transform": "finite_decimal_for_zero_filter_only",
+      "availability": "unverified",
+      "reason": "Zero-price filter; model use lacks currency and availability contract"
+    },
+    {
+      "field": "size",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "unverified",
+      "reason": "Product attribute not validated as static series property"
+    },
+    {
+      "field": "color",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "unverified",
+      "reason": "Product attribute not validated as static series property"
+    },
+    {
+      "field": "net_value_item",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "unverified",
+      "reason": "Not primary target; currency and timing unverified"
+    },
+    {
+      "field": "season",
+      "class": "forbidden",
+      "transform": "exclude_pending_planning_evidence",
+      "availability": "unverified",
+      "reason": "Known-future use needs evidence of plan available before origin"
+    },
+    {
+      "field": "valuation_type",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "unverified",
+      "reason": "Accounting attribute not validated at origin"
+    },
+    {
+      "field": "shipping_type",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "unverified",
+      "reason": "Shipping plan or realization timing unverified"
+    },
+    {
+      "field": "document_currency",
+      "class": "forbidden",
+      "transform": "strip_upper_for_currency_filter_only",
+      "availability": "not_used_as_feature",
+      "reason": "IDR exclusion; no monetary model feature approved"
+    },
+    {
+      "field": "old_item",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "unverified",
+      "reason": "Legacy identity not required"
+    },
+    {
+      "field": "old_po_number",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "not_required",
+      "reason": "Private legacy PO identifier"
+    },
+    {
+      "field": "item_category",
+      "class": "forbidden",
+      "transform": "exclude_pending_business_validation",
+      "availability": "unverified",
+      "reason": "SAP item category not automatically product category or brand"
+    },
+    {
+      "field": "delivery_status",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "potential_post_transaction",
+      "reason": "Operational status leakage"
+    },
+    {
+      "field": "reason_for_rejection",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "potential_post_transaction",
+      "reason": "Empty and possible post-transaction rejection information"
+    },
+    {
+      "field": "delivery_status_item_description",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "potential_post_transaction",
+      "reason": "Empty and operational status leakage"
+    },
+    {
+      "field": "search_term_1",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "unverified",
+      "reason": "No validated brand mapping; possible identity"
+    },
+    {
+      "field": "md_name",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "unverified",
+      "reason": "Personal or business identity unnecessary for forecasting"
+    },
+    {
+      "field": "skucode",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "unverified",
+      "reason": "Entirely empty in WP1; no fabricated category"
+    },
+    {
+      "field": "setcode",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "unverified",
+      "reason": "Entirely empty in WP1"
+    },
+    {
+      "field": "wh_code",
+      "class": "forbidden",
+      "transform": "exclude",
+      "availability": "unverified",
+      "reason": "Entirely empty in WP1"
+    }
+  ],
+  "system_columns": {
+    "source_file": "private_lineage_only",
+    "source_year": "private_lineage_and_audit_only",
+    "source_sheet": "private_lineage_only",
+    "source_row_number": "private_lineage_only",
+    "quality_status": "audit_only_never_model_feature",
+    "quality_flags": "audit_only_never_model_feature",
+    "wp2_quality_holds": "audit_only_never_model_feature",
+    "wp2_country_was_missing": "audit_only_never_model_feature"
+  },
+  "country_missing": {
+    "field": "country_key",
+    "action": "explicit_unknown",
+    "token": "__UNKNOWN_COUNTRY__",
+    "indicator": "wp2_country_was_missing",
+    "approval": "User approved retaining rows as unknown country",
+    "unseen_category_encoder_token": "__UNKNOWN__",
+    "distinction": "Missing destination category differs from an unseen nonmissing country at validation/test"
+  }
+}

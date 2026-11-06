@@ -1,5 +1,5 @@
 {
-  "config_version": "current-data-v1",
+  "config_version": "current-data-v3",
   "active_cleaning_config": "configs/data-cleaning.v2.json",
   "active_manifest": "artifacts/data/cleaned/clean-v2_20261104T040822Z_a4d0b0f7/cleaning_manifest.json",
   "missingness_report": "artifacts/data/cleaned/clean-v2_20261104T040822Z_a4d0b0f7/missingness_by_column.csv",
@@ -8,6 +8,16 @@
   "active_schema_report": "artifacts/data/canonical/data-harmonization-v1_20261105T122845Z_8adc4a76/schema_report.json",
   "active_data_quality_report": "artifacts/data/canonical/data-harmonization-v1_20261105T122845Z_8adc4a76/data_quality_report.json",
   "canonical_schema_version": "transactions-canonical-v1",
+  "business_selection_config": "configs/business-selection.v2.json",
+  "feature_contract_config": "configs/feature-contract.v2.json",
+  "active_business_data_manifest": "artifacts/data/business_selected/business-selection-v2_20261105T143150Z_76206da8/data_manifest.json",
+  "active_business_selection_report": "artifacts/data/business_selected/business-selection-v2_20261105T143150Z_76206da8/selection_report.json",
+  "active_business_target_eda": "artifacts/data/business_selected/business-selection-v2_20261105T143150Z_76206da8/target_eda.json",
+  "active_feature_contract": "artifacts/data/business_selected/business-selection-v2_20261105T143150Z_76206da8/feature_contract.json",
+  "business_data_ready_for_panel": false,
+  "business_data_pending_decisions": [
+    "brand_or_category_mapping_or_fallback_requires_approval"
+  ],
   "column_missingness_policy": "preserve_all_columns_including_entirely_empty_columns",
   "superseded_column_deletion_runs": [
     "clean-v1_20261104T031315Z_9f676a7e",

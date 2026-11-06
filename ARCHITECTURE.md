@@ -8,7 +8,7 @@ Arsitektur ini dirancang untuk eksperimen peramalan yang adil dan dapat direprod
 SAP XLSX tahunan
   -> ingest dan schema audit
   -> transaksi kanonis + quality report
-  -> konversi IDR ke USD + feature contract
+  -> filter bisnis WP2 + feature contract + pemeriksaan kelayakan
   -> panel mingguan per series
   -> chronological split + window builder
   -> model adapters: MoEBS | N-Space | TFT
@@ -25,7 +25,7 @@ Tidak ada komponen deployment, API SAP, dashboard operasional, atau write-back k
 | Source | Membaca tiga ekstraksi SAP tanpa memodifikasi sumber | File XLSX read-only, checksum |
 | Data quality | Validasi skema, tipe, tanggal, duplikasi, missingness, currency | `data_quality_report`, `data_manifest` |
 | Canonical data | Menyatukan nama/tipe kolom dan provenance per tahun | `transactions_canonical` |
-| Feature | Konversi mata uang, target, kategori, fitur kalender, leakage policy | `feature_contract`, `panel_weekly` |
+| Business selection/feature | Filter bisnis seragam, target, kategori, fitur kalender, leakage policy | transaksi terfilter, `selection_report`, `feature_contract`, `panel_weekly` |
 | Split/window | Membuat split kalender dan sample tensor bebas leakage | `split_manifest`, window index |
 | Model | Melatih arsitektur dengan interface dan logging seragam | checkpoint, config efektif |
 | Evaluation | Menghitung metrik, timing, prediksi, analisis error | predictions, metrics, comparison table |
@@ -55,6 +55,12 @@ season, sales_office, sales_group, delivery_status, ...
 
 `category_or_brand_key` tidak boleh diisi sampai rule mapping brand disetujui. Sempro menyebut brand, tetapi header sumber tidak memiliki kolom bernama `Brand`.
 
+WP2 memetakan `Sales group`/`sales_group` sebagai kode buyer sesuai konfirmasi bisnis. Kolom ini digunakan untuk eksklusi buyer, bukan sebagai brand. `configs/business-selection.v2.json` menetapkan filter baris IDR, empat buyer yang dikecualikan, negara ID, dan harga numerik nol, serta kategori eksplisit untuk negara kosong. Pipeline `src/data/business_selection.py` membaca manifest kanonis WP1, memverifikasi checksum sebelum/sesudah, dan menyimpan hasil serta audit alasan eksklusi pada direktori run privat yang baru.
+
+`configs/current-data.json` mempertahankan `active_data_manifest` untuk WP1 dan mencatat `active_business_data_manifest` untuk hasil WP2 bersama `business_data_ready_for_panel`. Semua model harus memakai manifest WP2 yang sama setelah pemeriksaan kelayakan terpenuhi. Baris yang lolos empat filter tetapi memiliki nilai wajib hilang/tidak valid atau numerik negatif tetap disimpan dengan `wp2_quality_holds`; baris ini perlu keputusan sebelum pembuatan panel. Duplikasi hanya dilaporkan, tanpa penghapusan tambahan.
+
+Pengecualian yang telah disetujui: `country_key` kosong menjadi `__UNKNOWN_COUNTRY__`, dengan indikator audit `wp2_country_was_missing`; barisnya tetap dipertahankan tanpa hold negara kosong. Token ini adalah kategori negara yang tidak diketahui, terpisah dari `__UNKNOWN__` untuk kategori baru di encoder. Pipeline menolak benturan token dengan nilai sumber yang sudah terisi. Tidak ada fitting atau inferensi negara dari baris lain.
+
 ## Kontrak waktu dan target
 
 ### Granularity
@@ -71,15 +77,16 @@ Pipeline harus menghasilkan kalender mingguan lengkap untuk setiap seri aktif da
 
 ### Target
 
-Target bersifat konfigurabel sampai EDA membekukan keputusan:
+Keputusan bisnis WP2 menetapkan target utama berikut dalam `configs/feature-contract.v2.json`:
 
 ```text
-target_name: order_quantity_usd_independent | net_value_usd | approved_other
-target_unit: item | USD
+target_name: order_quantity_item
+target_unit: pcs
 aggregation: sum
+aggregation_gate: common_quantity_unit_pcs_confirmed
 ```
 
-Jika target atau fitur menggunakan `Net Value (Item)`, konversi setiap transaksi IDR ke USD harus terjadi sebelum agregasi. Tabel kurs harus memiliki tanggal, pasangan mata uang, sumber, metode pengisian hari non-trading, versi, dan checksum.
+Target kuantitas tidak memerlukan konversi mata uang dan seluruh baris IDR telah dikecualikan. `Net Price` dan `Net Value (Item)` dipertahankan untuk audit tetapi dikecualikan dari fitur model sampai kontrak mata uang dan ketersediaan waktunya disetujui. Tidak ada kurs yang diterapkan. Satuan pcs telah dikonfirmasi; kuantitas pecahan tetap dipertahankan tanpa pembulatan. Panel model masih menunggu validasi brand/kategori atau persetujuan fallback.
 
 ### Ketersediaan fitur pada origin prediksi
 
@@ -91,12 +98,12 @@ Jika target atau fitur menggunakan `Net Value (Item)`, konversi setiap transaksi
 | Unknown future | realisasi harga, order, nilai penjualan | Tidak boleh dipakai untuk target horizon |
 | Suspect leakage | delivery status, rejection reason, status pemenuhan | Dilarang sampai dibuktikan tersedia saat prediksi |
 
-`CRD Date` adalah kandidat fitur yang harus diklasifikasikan setelah arti bisnis dan waktu ketersediaannya tervalidasi.
+`KP Date` adalah tanggal dibuatnya Kartu Produksi dan menjadi indeks waktu utama. `CRD Date` adalah tanggal keberangkatan ekspor; artinya sudah dikonfirmasi tetapi waktu ketersediaannya belum terbukti, sehingga dikecualikan dari fitur. `configs/feature-contract.v2.json` mengklasifikasikan seluruh 34 kolom dan kolom provenance. Kalender merupakan known future; lag target hanya observed past dari data yang tersedia sampai origin. Tidak ada fitting scaler/encoder, imputasi statistik, split, atau penalaan model pada WP2.
 
 ## Pembentukan data model
 
 1. Ingest membuat transaksi kanonis dan menandai baris invalid.
-2. Validasi currency dan konversi IDR ke USD menghasilkan nilai ekonomi satuan.
+2. Seleksi bisnis WP2 menerapkan filter yang sama untuk seluruh tahun, kategori negara unknown yang disetujui, serta target pcs, dan menghasilkan satu manifest bersama. Kelayakan panel menunggu pemetaan seri dan penyelesaian quality holds jika ada; baris terfilter tidak otomatis berarti siap dilatih.
 3. Transformasi kategori memakai vocabulary yang fit pada train saja; kategori baru memakai token `unknown`.
 4. Agregasi membuat panel mingguan per `series_id`.
 5. Feature builder menambahkan kalender dan lag yang hanya memanfaatkan masa lalu.
@@ -180,6 +187,16 @@ artifacts/
     data_manifest.json
     feature_contract.json
     split_manifest.json
+  data/business_selected/<manifest_id>/
+    selected_transactions.csv.gz
+    selection_audit.csv.gz
+    selection_report.json
+    target_eda.json
+    feature_contract.json
+    config.resolved.json
+    current-data.snapshot.json
+    harmonization-config.snapshot.json
+    data_manifest.json
   runs/<run_id>/
     config.resolved.yaml
     run_manifest.json

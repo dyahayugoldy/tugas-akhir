@@ -41,8 +41,11 @@ Simpan data mentah sebagai read-only. Semua hasil transformasi harus dibuat seba
 ## Kontrak data awal
 
 - Unit sumber adalah item transaksi penjualan.
-- Kolom waktu utama adalah `KP Date`; `CRD Date` harus dipahami secara bisnis sebelum dipakai sebagai fitur.
-- Kandidat target adalah `Order Quantity (Item)` dan `Net Value (Item)` setelah harmonisasi mata uang. Pilih satu target utama setelah EDA dan catat keputusan itu pada konfigurasi serta laporan.
+- Kolom waktu utama adalah `KP Date`, yaitu tanggal dibuatnya Kartu Produksi. `CRD Date` adalah tanggal keberangkatan ekspor; penggunaannya sebagai fitur dilarang sampai ketersediaannya pada origin prediksi terbukti.
+- Target utama yang telah ditetapkan adalah `Order Quantity (Item)` dengan satuan pcs berdasarkan konfirmasi bisnis. Agregasi menggunakan penjumlahan per seri-minggu setelah definisi seri tervalidasi; pertahankan kuantitas pecahan tanpa pembulatan.
+- `Country Key` kosong dipertahankan sebagai kategori negara `__UNKNOWN_COUNTRY__` sesuai keputusan bisnis, disertai indikator audit asal kosong. Bedakan kategori ini dari token encoder untuk kategori baru pada validation/test; data mentah dan kanonis WP1 tetap utuh.
+- `Sales group` (`sales_group` pada skema kanonis) adalah kode buyer berdasarkan konfirmasi bisnis, bukan pemetaan brand.
+- Dataset analisis/model mengecualikan baris dengan `Document Currency = IDR`, buyer `PEB`/`KWK`/`LNS`/`CPC` pada `Sales group`, `Country Key = ID`, atau `Net Price` bernilai numerik nol (termasuk `0.00`). Terapkan pada seluruh sumber melalui konfigurasi versi; simpan alasan dan statistik eksklusi pada artefak turunan tanpa mengubah data mentah.
 - Sempro mengusulkan agregasi mingguan per kombinasi negara tujuan dan merek karena seri harian terlalu sparse.
 - Dataset tidak memiliki kolom bernama `Brand` secara eksplisit. Jangan menyamakan `Search Term`, `Search term 1`, `Sales group`, atau turunan `Material` dengan merek tanpa data dictionary atau validasi pemilik data.
 - `Delivery Status`, `Reason for Rejection`, dan status operasional lain berpotensi merupakan informasi pasca-transaksi. Perlakukan sebagai leakage sampai terbukti tersedia pada saat origin prediksi.
