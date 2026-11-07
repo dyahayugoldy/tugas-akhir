@@ -57,6 +57,21 @@ python -m src.data.harmonize_workbooks --config configs/data-harmonization.v1.js
 
 The command verifies source and cleaned-input checksums before and after reading. It writes a new private directory under `artifacts/data/canonical/` containing `canonical_transactions.csv.gz`, `schema_report.json`, `data_quality_report.json`, and `data_manifest.json`. Every source row is retained with a `valid`, `flagged`, or `rejected` quality status; no imputation, row deletion, currency conversion, or feature selection occurs in WP1. Review the generated manifest and then deliberately update `configs/current-data.json` before a later stage consumes a new canonical run.
 
+## WP3 weekly panel and causal features
+
+```powershell
+python -m src.data.weekly_panel --config configs/panel-weekly.v1.json
+python -m unittest discover -s tests -v
+```
+
+The command reads the ready WP2 manifest from `configs/current-data.json`, verifies its output hashes and original-source lineage, and creates a new private run under `artifacts/data/weekly_panel/`. It never updates the active pointer automatically. Verify the new manifest and then update `active_panel_manifest` and its associated paths deliberately; retain the WP1/WP2 pointers.
+
+The run separates observed aggregates (`aggregated/observed_weekly.csv.gz`), calendar-complete labels (`panel/panel_weekly.csv.gz`), identity/knowledge-time registry (`panel/series_registry.csv.gz`), and causal features (`features/calendar_lags.csv.gz`). Exact decimal target sums are reconciled both for all observed transactions and for complete panel weeks. Partial boundary-week observations remain in the observed audit. Feature CSVs do not include labels, identifiers from SAP transactions, operational status, or monetary covariates.
+
+`target_eda.json`, `panel_report.json`, `window_design.json`, `feature_contract.json`, resolved configuration, the input pointer snapshot, and snapshots/hashes of the four Python source dependencies accompany every run. All detailed category labels and numeric summaries remain private. Identical configuration/input/code produces identical hashes for deterministic data and report outputs; run IDs, manifests, and elapsed time intentionally differ.
+
+No minimum-length filter based on future observations is applied. Series start at their first observed week and continue through the last complete coverage week. Eligibility requires encoder plus lag history at each origin. The feature accessor requires the original forecast origin and registry, masks unavailable future lag values, and excludes series not yet known at that origin. WP4 must fit vocabularies/scalers on train only, preserve a common split, and carry forward the declared annual-coverage and zero-capture-delay assumptions. Annual snapshots cannot prove absence of late/backdated revisions.
+
 ## Git data protection
 
 - `dataset/`, `artifacts/`, `secrets/`, `.env*` (except `.env.example`), PEM/key files, workbooks, checkpoints, detailed logs, and Parquet files are ignored. Extension checks include uppercase copies.

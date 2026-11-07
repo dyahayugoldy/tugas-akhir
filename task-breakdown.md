@@ -4,7 +4,7 @@ Dokumen ini memecah penelitian menjadi pekerjaan yang dapat diverifikasi. Urutan
 
 ## Indikator status
 
-Status di bawah diaudit hingga 5 November 2026 berdasarkan artefak yang ada di repositori. Status `✅ Selesai` hanya dipakai setelah seluruh kriteria pada bagian **Selesai bila** dapat dibuktikan.
+Status di bawah diaudit hingga 6 November 2026 berdasarkan artefak yang ada di repositori. Status `✅ Selesai` hanya dipakai setelah seluruh kriteria pada bagian **Selesai bila** dapat dibuktikan.
 
 | Indikator | Arti |
 | --- | --- |
@@ -73,7 +73,7 @@ Nama berkas sumber, checksum, dan manifest aktif harus selalu diambil dari konfi
 
 ## WP2 - Keputusan bisnis dan feature contract
 
-**Status: 🔄 Sebagian selesai (dijalankan dan diverifikasi 5 November 2026).** Pipeline filter, pemetaan buyer, konfigurasi versi, `feature_contract` untuk 34 kolom, EDA target privat, dan manifest bersama sudah tersedia. Run aktif `business-selection-v2_20261105T143150Z_76206da8` mempertahankan 163.016 dari 180.246 baris; 17.230 baris unik dikeluarkan. Satuan target telah dikonfirmasi pcs, dan 4.928 baris tanpa negara dipertahankan sebagai `__UNKNOWN_COUNTRY__` sesuai keputusan pengguna, tanpa quality hold. Tidak ada `Sales group` kosong pada setiap tahun sebelum/sesudah filter. Seluruh 34 pengujian unittest dan satu regression test tanggal lulus. WP2 belum ditutup karena pemetaan brand/fallback masih menunggu konfirmasi. Bukti dan perintah reproduksi tersedia di [reports/wp2-verification.md](reports/wp2-verification.md).
+**Status: ✅ Selesai (diverifikasi 6 November 2026).** Pipeline filter, pemetaan buyer dan brand, konfigurasi versi, `feature_contract` untuk 34 kolom, EDA target privat, dan manifest bersama sudah tersedia. Pengguna mengonfirmasi `Sales group` sebagai kolom brand; seri ditetapkan sebagai kombinasi `country_key` dan `sales_group`. Run aktif `business-selection-v3_20261106T075504Z_052ff4d7` mempertahankan 163.016 dari 180.246 baris; 17.230 baris unik dikeluarkan. Transaksi dan target identik dengan v2, termasuk kuantitas pecahan dan 4.928 baris negara unknown. Tidak ada brand kosong atau quality hold setelah filter; manifest menetapkan `ready_for_panel=true` tanpa blocker. Seluruh 35 pengujian unittest lulus. Bukti dan perintah reproduksi tersedia di [reports/wp2-verification.md](reports/wp2-verification.md); implementasi panel tetap menjadi pekerjaan WP3.
 
 **Tujuan:** memastikan definisi peramalan dapat dijawab oleh data yang tersedia pada origin prediksi.
 
@@ -85,6 +85,7 @@ Nama berkas sumber, checksum, dan manifest aktif harus selalu diambil dari konfi
 | `CRD Date` | Tanggal keberangkatan ekspor. Arti bisnis sudah ditetapkan; ketersediaannya pada origin prediksi tetap harus divalidasi sebelum dipakai sebagai fitur. |
 | Mata uang | Keluarkan seluruh baris dengan `Document Currency = IDR` dari dataset analisis/model. |
 | Buyer | Gunakan kolom sumber `Sales group` (`sales_group` pada skema kanonis) sebagai kode buyer sesuai konfirmasi bisnis. Keluarkan seluruh baris dengan kode buyer `PEB`, `KWK`, `LNS`, dan `CPC` pada kolom tersebut. |
+| Brand | Konfirmasi pengguna 6 November 2026 menetapkan `Sales group` sebagai kolom brand. Gunakan `sales_group` yang di-trim dan dikapitalisasi sebagai brand key langsung; identitas seri adalah kombinasi negara dan brand. Peran kolom untuk filter buyer tetap berlaku. |
 | Negara tujuan | Keluarkan seluruh baris dengan `Country Key = ID` dari seluruh sumber tahun 2023–2025. Negara kosong dipertahankan sebagai kategori `__UNKNOWN_COUNTRY__` dengan indikator audit asal kosong; negara lainnya tetap dipertahankan. |
 | Target utama | Gunakan `Order Quantity (Item)` (`order_quantity_item` pada skema kanonis) dalam pcs, dengan agregasi penjumlahan per seri-minggu setelah seri tervalidasi. Kuantitas pecahan tetap dipertahankan tanpa pembulatan. `Net Value (Item)` tidak menjadi target utama. |
 | Harga nol | Keluarkan seluruh baris dengan `Net Price` bernilai numerik nol, termasuk representasi `0` dan `0.00`. |
@@ -92,9 +93,9 @@ Nama berkas sumber, checksum, dan manifest aktif harus selalu diambil dari konfi
 **Tugas dan verifikasi:**
 
 - [x] Catat definisi bisnis `KP Date` dan `CRD Date`, pilihan target utama, serta aturan eksklusi di atas.
-- [x] Tetapkan pemetaan buyer: kolom sumber `Sales group` → kolom kanonis `sales_group` → peran bisnis kode buyer, berdasarkan konfirmasi bisnis. Pemetaan ini tidak menetapkan buyer sebagai brand.
+- [x] Tetapkan pemetaan buyer: kolom sumber `Sales group` → kolom kanonis `sales_group` → peran bisnis kode buyer. Konfirmasi tambahan pengguna 6 November 2026 juga menetapkan kolom yang sama sebagai brand key.
 - [x] Terapkan dan uji pemetaan buyer dari `sales_group` pada seluruh sumber 2023–2025, termasuk normalisasi kode, kebijakan nilai kosong, serta eksklusi `PEB`, `KWK`, `LNS`, dan `CPC`; simpan pemetaan dalam konfigurasi versi dan `feature_contract`.
-- [x] Simpan keputusan tanggal, target pcs, dan seluruh aturan filter dalam `configs/business-selection.v2.json` serta `configs/feature-contract.v2.json`. Kode kategorikal di-trim dan dikapitalisasi; harga diparse sebagai desimal finite. Nilai kosong/tidak valid dipertahankan dengan quality hold, kecuali negara kosong yang menjadi kategori unknown berdasarkan keputusan pengguna; tidak ada nilai yang dianggap nol secara otomatis. Versi v1 tetap disimpan untuk audit.
+- [x] Simpan keputusan tanggal, target pcs, brand, dan seluruh aturan filter dalam `configs/business-selection.v3.json` serta `configs/feature-contract.v3.json`. Kode kategorikal di-trim dan dikapitalisasi; harga diparse sebagai desimal finite. Nilai kosong/tidak valid dipertahankan dengan quality hold, kecuali negara kosong yang menjadi kategori unknown berdasarkan keputusan pengguna; tidak ada nilai transaksi hilang yang dianggap nol secara otomatis. Versi v1/v2 tetap disimpan untuk audit.
 - [x] Terapkan satu aturan eksklusi yang sama pada transaksi kanonis dari ketiga sumber sebelum EDA WP3, agregasi, dan split. Baris dikeluarkan bila memenuhi setidaknya satu aturan mata uang, buyer, negara, atau harga nol. Hasil disimpan sebagai artefak turunan baru yang dipakai bersama oleh ketiga model; berkas mentah dan artefak audit WP1 tetap dipertahankan.
 - [x] Buat laporan filter per tahun dan gabungan: jumlah baris sebelum/sesudah, jumlah yang cocok dengan setiap aturan, overlap antaraturan, serta total baris unik yang dikeluarkan agar tidak terhitung ganda. Alasan eksklusi dan lineage tersimpan pada artefak privat; laporan yang dilacak Git hanya memuat ringkasan agregat yang aman.
 - [x] Verifikasi hasil filter tidak memuat mata uang `IDR`, buyer yang dikecualikan, negara `ID`, maupun `Net Price = 0`; pengujian mencakup representasi harga `0`/`0.00`, normalisasi kode, nilai kosong/invalid, dan overlap. Checksum sumber, manifest input/output, serta pembacaan ulang hasil membuktikan integritas artefak.
@@ -103,23 +104,24 @@ Nama berkas sumber, checksum, dan manifest aktif harus selalu diambil dari konfi
 - [x] Terapkan keputusan pengguna untuk mempertahankan 4.928 baris tanpa `Country Key` sebagai `__UNKNOWN_COUNTRY__`, dengan indikator audit `wp2_country_was_missing`. Token ini berbeda dari token encoder `__UNKNOWN__` untuk kategori baru. Tidak ada quality hold negara kosong atau penghapusan tambahan; data mentah/kanonis tetap utuh.
 - [x] Verifikasi `Sales group` kosong: 0 baris pada masing-masing tahun 2023, 2024, dan 2025, baik sebelum maupun sesudah filter; statistik tersimpan pada `selection_report.json`.
 - [x] Dokumentasikan waktu ketersediaan setiap fitur dan kelompokkan menjadi static categorical, known future, observed past, dan forbidden/leakage. `CRD Date` dilarang sebagai fitur sampai tersedia bukti pada origin; definisi tanggal tidak menetapkan ambang penghapusan selisih tanggal. Tidak ada fit scaler/encoder atau imputasi statistik pada WP2.
-- [ ] Validasi field atau aturan derivasi brand. Tidak ada data dictionary/mapping resmi yang tersedia; seluruh kandidat tetap dikecualikan dari peran brand.
-- [ ] Setujui fallback bila brand tidak bisa dipetakan. Kontrak mencatat usulan seri per negara saja sebagai opsi yang memerlukan konfirmasi pengguna/pembimbing sebelum digunakan; buyer tidak dijadikan brand.
+- [x] Validasi field atau aturan derivasi brand. Pengguna mengonfirmasi `Sales group` pada 6 November 2026; kontrak v3 menetapkan mapping langsung ke `sales_group`, normalisasi, dan peran static categorical untuk identitas seri. Nilai kosong tetap quality hold.
+- [x] Tutup keputusan fallback. `country_only` tidak dipilih karena mapping brand telah dikonfirmasi. Fallback ini berarti menjumlahkan seluruh brand per negara-minggu; detail per brand hilang dan unit analisis berbeda dari seri negara × brand.
 
 **Selesai bila:** konfigurasi versi dan `feature_contract` menetapkan definisi tanggal, pemetaan `Sales group`/`sales_group` sebagai buyer, target kuantitas beserta satuan/agregasinya, seluruh aturan eksklusi, serta transformasi dan ketersediaan waktu setiap kolom. Artefak turunan dan laporan sebelum/sesudah membuktikan pemetaan buyer dan filter diterapkan pada seluruh sumber 2023–2025, pengujian eksklusi lulus, dan satu manifest hasil filter menjadi acuan ketiga model.
 
 ## WP3 - EDA, agregasi, dan dataset time series
 
-**Status: ⬜ Belum dimulai.** Belum ada artefak EDA agregat, panel mingguan, maupun aturan regularisasi kalender yang dapat diaudit.
+**Status: ✅ Selesai (diverifikasi 6 November 2026).** Run aktif `panel-weekly-v1_20261106T091154Z_6030bb53` menghasilkan 23.812 baris panel untuk 229 seri negara × brand dalam 156 minggu lengkap, tanpa minggu ganda. Sebanyak 19.969 minggu-seri tanpa transaksi diisi nol (83,86% panel), sedangkan 283 transaksi pada minggu parsial akhir tahun tetap tersimpan di audit dan tidak masuk panel. Agregasi desimal mempertahankan target tanpa pembulatan. Kalender, lag 1/2/4/13 minggu, registry waktu diketahui, dan masking per origin tersedia. Desain input 12 minggu serta horizon 1 minggu dipilih/dibekukan tanpa holdout; dua run menghasilkan checksum identik pada delapan artefak deterministik utama. Seluruh 48 pengujian unittest lulus. Bukti, reproduksi, dan asumsi cakupan/capture tersedia di [reports/wp3-verification.md](reports/wp3-verification.md). Split final dan fitting preprocessing tetap menjadi pekerjaan WP4.
 
 **Tujuan:** mengubah item transaksi menjadi panel time series yang siap dilatih.
 
-- Buat EDA agregat yang aman: transaksi per bulan/minggu, target, mata uang, negara, kategori tervalidasi, dan missingness.
-- Agregasikan transaksi ke minggu yang konsisten per `series_id`, dengan `series_id` dibentuk dari negara tujuan dan brand/kategori yang tervalidasi.
-- Buat kalender mingguan lengkap. Masukkan nol hanya bila definisi bisnis menyatakan tidak ada transaksi berarti permintaan nol; dokumentasikan kebijakan seri sebelum/selesai aktif.
-- Buat fitur kalender dan fitur lag dari data yang tersedia sampai origin prediksi.
-- Tetapkan panjang encoder/input dan horizon forecast melalui EDA serta konfigurasi, bukan konstanta source.
-- Tangani seri terlalu pendek dan kategori baru dengan aturan eksplisit.
+- [x] Buat EDA agregat privat: transaksi/target per bulan dan minggu, mata uang, negara, brand tervalidasi, missingness, panjang seri, serta sparsity sebelum/sesudah. Ringkasan aman ada pada laporan WP3.
+- [x] Agregasikan transaksi per `series_id`-minggu Senin-Minggu, dengan identitas tuple `country_key` dan `sales_group` sebagai brand. Hash tuple stabil tidak menggantikan vocabulary encoder train-only.
+- [x] Tetapkan minggu tanpa transaksi setelah filter bisnis sebagai permintaan nol (0 pcs), sesuai keputusan pengguna 6 November 2026; kebijakan tersimpan pada `calendar_regularization` di kontrak v3.
+- [x] Buat kalender mingguan lengkap di dalam cakupan tahunan yang dideklarasikan dan diaudit. Seri dimulai pada minggu transaksi pertama dan dilanjutkan sampai minggu lengkap terakhir; tidak ada pemotongan memakai transaksi terakhir. Simpan indikator audit `wp3_zero_filled`, statistik nol, dan agregat minggu parsial secara terpisah. Asumsi kelengkapan ekstraksi tercatat karena log ekstraksi tidak tersedia.
+- [x] Buat fitur kalender dan lag dengan tanggal sumber serta waktu ketersediaan; accessor mem-mask lag terhadap origin asli dan menolak seri yang belum diketahui. Label target dan kolom operasional/moneter tidak masuk tabel fitur. Asumsi delay capture 0 hari tercatat, tanpa klaim verifikasi operasional.
+- [x] Tetapkan panjang input 12 minggu dari kandidat 8/12/26/52 berdasarkan dukungan window periode pengembangan usulan train saja, dengan retensi minimal 80% terhadap kandidat terpendek. Horizon 1 minggu mengikuti target periode berikutnya; konfigurasi dan keputusan efektif disimpan.
+- [x] Pertahankan seri pendek dan seri baru; syarat histori diperiksa per origin pada WP4, tanpa filter panjang yang melihat masa depan. Minimum histori encoder beserta lag adalah 25 minggu. Kategori baru nanti memakai encoder train-only dan token unknown; WP3 tidak melakukan fitting kategori atau scaler.
 
 **Selesai bila:** panel memiliki satu baris per `series_id`-minggu, tidak ada minggu ganda, dan statistik sparsity tersedia sebelum dan sesudah regularisasi kalender.
 

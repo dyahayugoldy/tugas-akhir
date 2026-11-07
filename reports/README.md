@@ -12,3 +12,4 @@ or combined. Never copy data directly from `dataset/` into this directory.
 
 WP0 verification evidence is recorded in `wp0-verification.md`.
 WP2 business-filter verification and outstanding decisions are recorded in `wp2-verification.md`.
+WP3 weekly-panel, regularization, causal-feature, and design verification is recorded in `wp3-verification.md`; detailed EDA and category labels remain private.

@@ -58,7 +58,7 @@ class BusinessSelectionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_config(broken_config, contract, schema)
 
-    def make_workspace(self, root):
+    def make_workspace(self, root, updates=None):
         (root / "configs").mkdir()
         (root / "dataset").mkdir()
         artifact = root / "artifacts/input"
@@ -68,9 +68,10 @@ class BusinessSelectionTests(unittest.TestCase):
             (root / name).write_bytes((ROOT / name).read_bytes())
         schema = json.loads((root / config["harmonization_config"]).read_text())
         rows = []
-        updates = [{}, {"document_currency": " idr ", "sales_group": "peb", "country_key": "ID", "net_price": "0.00"},
-                   {"sales_group": "kwk"}, {"net_price": "0"}, {"kp_date": "", "net_price": "bad"},
-                   {"document_currency": "EUR", "order_quantity_item": "0"}]
+        if updates is None:
+            updates = [{}, {"document_currency": " idr ", "sales_group": "peb", "country_key": "ID", "net_price": "0.00"},
+                       {"sales_group": "kwk"}, {"net_price": "0"}, {"kp_date": "", "net_price": "bad"},
+                       {"document_currency": "EUR", "order_quantity_item": "0"}]
         for i, update in enumerate(updates):
             row = {d["canonical_name"]: "" for d in schema["column_definitions"]}
             row.update(self.row)
@@ -176,6 +177,38 @@ class BusinessSelectionTests(unittest.TestCase):
         frame.loc[3, "country_key"] = "__UNKNOWN_COUNTRY__"
         with self.assertRaisesRegex(ValueError, "collides"):
             apply_missing_categories(frame, config)
+
+    def test_v3_brand_contract_panel_readiness_and_missing_brand_hold(self):
+        self.config = json.loads((ROOT / "configs/business-selection.v3.json").read_text())
+        for missing_brand in [False, True]:
+            with self.subTest(missing_brand=missing_brand), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder)
+                updates = [
+                    {"sales_group": " synthetic_a ", "country_key": "", "order_quantity_item": "1.5"},
+                    {"sales_group": " " if missing_brand else "synthetic_b", "country_key": "NA"},
+                    {"sales_group": "synthetic_a", "country_key": "US"},
+                ]
+                output = run(self.make_workspace(root, updates=updates), root=root)
+                manifest = json.loads((output / "data_manifest.json").read_text())
+                contract = json.loads((output / "feature_contract.json").read_text())
+                selected = pd.read_csv(output / "selected_transactions.csv.gz", dtype=str, keep_default_na=False)
+                self.assertEqual(contract["series"]["fields"], ["country_key", "sales_group"])
+                self.assertEqual(contract["series"]["brand_mapping"]["canonical"], "sales_group")
+                sales_feature = next(c for c in contract["columns"] if c["field"] == "sales_group")
+                self.assertEqual(sales_feature["class"], "static_categorical")
+                self.assertEqual(contract["calendar_regularization"]["no_transaction_week"], "zero_demand")
+                self.assertEqual(contract["calendar_regularization"]["implementation_status"], "pending_WP3_panel_builder")
+                self.assertEqual(selected.loc[0, "sales_group"], "SYNTHETIC_A")
+                self.assertEqual(selected.loc[0, "country_key"], "__UNKNOWN_COUNTRY__")
+                self.assertEqual(selected.loc[0, "order_quantity_item"], "1.5")
+                self.assertEqual(manifest["row_count"], 3)
+                self.assertEqual(manifest["ready_for_panel"], not missing_brand)
+                self.assertNotIn("brand_or_category_mapping_or_fallback_requires_approval", manifest["blockers"])
+                if missing_brand:
+                    self.assertIn("sales_group_missing", selected.loc[1, "wp2_quality_holds"])
+                    self.assertEqual(manifest["blockers"], ["row_quality_holds_require_resolution_before_panel"])
+                else:
+                    self.assertEqual(manifest["blockers"], [])
 
 
 if __name__ == "__main__":

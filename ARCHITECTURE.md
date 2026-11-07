@@ -53,9 +53,9 @@ order_quantity, net_price, net_value, document_currency,
 season, sales_office, sales_group, delivery_status, ...
 ```
 
-`category_or_brand_key` tidak boleh diisi sampai rule mapping brand disetujui. Sempro menyebut brand, tetapi header sumber tidak memiliki kolom bernama `Brand`.
+Header sumber tidak memiliki kolom bernama `Brand`. Pada 6 November 2026 pengguna mengonfirmasi `Sales group` sebagai kolom brand; kontrak v3 menggunakan `sales_group` yang dinormalisasi sebagai brand key langsung tanpa membuat kategori dari kolom lain.
 
-WP2 memetakan `Sales group`/`sales_group` sebagai kode buyer sesuai konfirmasi bisnis. Kolom ini digunakan untuk eksklusi buyer, bukan sebagai brand. `configs/business-selection.v2.json` menetapkan filter baris IDR, empat buyer yang dikecualikan, negara ID, dan harga numerik nol, serta kategori eksplisit untuk negara kosong. Pipeline `src/data/business_selection.py` membaca manifest kanonis WP1, memverifikasi checksum sebelum/sesudah, dan menyimpan hasil serta audit alasan eksklusi pada direktori run privat yang baru.
+WP2 memetakan `Sales group`/`sales_group` sebagai kode buyer untuk eksklusi dan, sesuai konfirmasi pengguna 6 November 2026, sebagai kode brand untuk identitas seri. `configs/business-selection.v3.json` mempertahankan filter baris IDR, empat buyer yang dikecualikan, negara ID, dan harga numerik nol, serta kategori eksplisit untuk negara kosong. Kontrak aktif adalah `configs/feature-contract.v3.json`; v1/v2 beserta artefaknya tetap menjadi riwayat keputusan. Pipeline `src/data/business_selection.py` membaca manifest kanonis WP1, memverifikasi checksum sebelum/sesudah, dan menyimpan hasil serta audit alasan eksklusi pada direktori run privat yang baru.
 
 `configs/current-data.json` mempertahankan `active_data_manifest` untuk WP1 dan mencatat `active_business_data_manifest` untuk hasil WP2 bersama `business_data_ready_for_panel`. Semua model harus memakai manifest WP2 yang sama setelah pemeriksaan kelayakan terpenuhi. Baris yang lolos empat filter tetapi memiliki nilai wajib hilang/tidak valid atau numerik negatif tetap disimpan dengan `wp2_quality_holds`; baris ini perlu keputusan sebelum pembuatan panel. Duplikasi hanya dilaporkan, tanpa penghapusan tambahan.
 
@@ -68,16 +68,18 @@ Pengecualian yang telah disetujui: `country_key` kosong menjadi `__UNKNOWN_COUNT
 Rancangan sempro memilih agregasi mingguan per kombinasi negara tujuan dan merek karena deret harian banyak yang sparse. Bentuk kanonisnya:
 
 ```text
-series_id = country_key + validated_brand_or_category_key
+series_id = kombinasi (country_key, sales_group)
 time_idx  = week_start_date
 row       = satu series_id pada satu minggu
 ```
 
-Pipeline harus menghasilkan kalender mingguan lengkap untuk setiap seri aktif dan menyimpan kebijakan apakah minggu tanpa transaksi berarti nol atau missing. Kebijakan ini perlu berbasis definisi bisnis, bukan sekadar kebutuhan tensor.
+Pipeline harus menghasilkan kalender mingguan lengkap untuk setiap seri aktif. Keputusan pengguna 6 November 2026 menetapkan minggu tanpa transaksi setelah filter bisnis sebagai permintaan nol (0 pcs), tercatat pada `calendar_regularization` di kontrak v3. Nol ini berlaku pada minggu dengan cakupan sumber lengkap; nilai transaksi hilang/invalid tetap memerlukan quality hold. Panel wajib menyimpan indikator audit `wp3_zero_filled` serta statistik sparsity sebelum/sesudah. Aturan aktivasi/penutupan seri dan minggu parsial harus ditetapkan melalui audit WP3 tanpa menggunakan informasi masa depan.
+
+Fallback `country_only` berarti setiap seri hanya mewakili satu negara: kuantitas seluruh brand di negara tersebut dijumlahkan per minggu. Jumlah seri berkurang dan panel dapat menjadi kurang sparse, tetapi detail per brand hilang. Pilihan ini mengubah unit analisis dari negara × brand menjadi negara dan harus dicatat sebagai deviasi dari sempro bila digunakan. Kontrak v3 menetapkannya tidak dipilih karena mapping brand `sales_group` telah dikonfirmasi; ketiga model tetap memakai seri negara × brand yang sama.
 
 ### Target
 
-Keputusan bisnis WP2 menetapkan target utama berikut dalam `configs/feature-contract.v2.json`:
+Keputusan bisnis WP2 menetapkan target utama berikut dalam `configs/feature-contract.v3.json`:
 
 ```text
 target_name: order_quantity_item
@@ -86,7 +88,7 @@ aggregation: sum
 aggregation_gate: common_quantity_unit_pcs_confirmed
 ```
 
-Target kuantitas tidak memerlukan konversi mata uang dan seluruh baris IDR telah dikecualikan. `Net Price` dan `Net Value (Item)` dipertahankan untuk audit tetapi dikecualikan dari fitur model sampai kontrak mata uang dan ketersediaan waktunya disetujui. Tidak ada kurs yang diterapkan. Satuan pcs telah dikonfirmasi; kuantitas pecahan tetap dipertahankan tanpa pembulatan. Panel model masih menunggu validasi brand/kategori atau persetujuan fallback.
+Target kuantitas tidak memerlukan konversi mata uang dan seluruh baris IDR telah dikecualikan. `Net Price` dan `Net Value (Item)` dipertahankan untuk audit tetapi dikecualikan dari fitur model sampai kontrak mata uang dan ketersediaan waktunya disetujui. Tidak ada kurs yang diterapkan. Satuan pcs dan brand `sales_group` telah dikonfirmasi; kuantitas pecahan tetap dipertahankan tanpa pembulatan. Kelayakan input WP2 untuk panel tidak berarti implementasi panel, split, dan audit ketersediaan pada origin telah selesai.
 
 ### Ketersediaan fitur pada origin prediksi
 
@@ -98,19 +100,27 @@ Target kuantitas tidak memerlukan konversi mata uang dan seluruh baris IDR telah
 | Unknown future | realisasi harga, order, nilai penjualan | Tidak boleh dipakai untuk target horizon |
 | Suspect leakage | delivery status, rejection reason, status pemenuhan | Dilarang sampai dibuktikan tersedia saat prediksi |
 
-`KP Date` adalah tanggal dibuatnya Kartu Produksi dan menjadi indeks waktu utama. `CRD Date` adalah tanggal keberangkatan ekspor; artinya sudah dikonfirmasi tetapi waktu ketersediaannya belum terbukti, sehingga dikecualikan dari fitur. `configs/feature-contract.v2.json` mengklasifikasikan seluruh 34 kolom dan kolom provenance. Kalender merupakan known future; lag target hanya observed past dari data yang tersedia sampai origin. Tidak ada fitting scaler/encoder, imputasi statistik, split, atau penalaan model pada WP2.
+`KP Date` adalah tanggal dibuatnya Kartu Produksi dan menjadi indeks waktu utama. `CRD Date` adalah tanggal keberangkatan ekspor; artinya sudah dikonfirmasi tetapi waktu ketersediaannya belum terbukti, sehingga dikecualikan dari fitur. `configs/feature-contract.v3.json` mengklasifikasikan seluruh 34 kolom dan kolom provenance. Negara dan brand `sales_group` adalah static categorical untuk identitas seri; kalender merupakan known future; lag target hanya observed past dari data yang tersedia sampai origin. Tidak ada fitting scaler/encoder, imputasi statistik, split, atau penalaan model pada WP2.
 
 ## Pembentukan data model
 
 1. Ingest membuat transaksi kanonis dan menandai baris invalid.
-2. Seleksi bisnis WP2 menerapkan filter yang sama untuk seluruh tahun, kategori negara unknown yang disetujui, serta target pcs, dan menghasilkan satu manifest bersama. Kelayakan panel menunggu pemetaan seri dan penyelesaian quality holds jika ada; baris terfilter tidak otomatis berarti siap dilatih.
-3. Transformasi kategori memakai vocabulary yang fit pada train saja; kategori baru memakai token `unknown`.
-4. Agregasi membuat panel mingguan per `series_id`.
-5. Feature builder menambahkan kalender dan lag yang hanya memanfaatkan masa lalu.
-6. Split builder membatasi waktu secara kronologis.
-7. Window builder membentuk pasangan `encoder_window -> forecast_horizon` dan menyimpan origin timestamp.
+2. Seleksi bisnis WP2 menerapkan filter yang sama untuk seluruh tahun, kategori negara unknown yang disetujui, serta target pcs, dan menghasilkan satu manifest bersama dengan pemeriksaan quality holds.
+3. WP3 menjumlahkan kuantitas desimal tanpa pembulatan per kombinasi negara-brand-minggu dan menyimpan agregat teramati terpisah dari panel kalender lengkap.
+4. Seri aktif sejak minggu transaksi pertama, tanpa baris sebelum aktivasi. Setelah aktif, minggu tanpa transaksi dipertahankan sebagai nol sampai akhir cakupan observasi; transaksi terakhir tidak dianggap bukti penutupan seri. Minggu parsial disimpan sebagai agregat audit dan dikecualikan dari panel.
+5. Feature builder menambahkan kalender dan lag dengan tanggal sumber serta waktu ketersediaan. Tabel fitur tidak membawa label target; indikator zero-fill, jumlah transaksi, dan tanggal sumber adalah metadata audit.
+6. WP4 membatasi waktu secara kronologis. Vocabulary/scaler fit hanya pada train; kategori baru memakai token `unknown`. Hash `series_id` WP3 adalah identitas tuple yang stabil, bukan encoding kategori yang telah difit.
+7. Window builder membentuk pasangan `encoder_window -> forecast_horizon`, menyimpan origin timestamp, dan memanggil `features_at_origin(features, origin, lags, registry)` dengan origin asli untuk menutup lag horizon yang belum tersedia dan seri yang belum dikenal.
 
 Usulan split dari sempro adalah train Desember 2023-Juni 2025, validation Juli-Agustus 2025, dan test September-November 2025. Desember 2025 hanya boleh masuk setelah audit memastikan bulan lengkap. Juli 2023 yang tidak representatif dapat dikeluarkan sesuai justifikasi sempro. Batas ini disimpan sebagai konfigurasi dan `split_manifest`, bukan hard-code.
+
+### Artefak WP3 dan batas interpretasi
+
+`python -m src.data.weekly_panel --config configs/panel-weekly.v1.json` menghasilkan run baru di `artifacts/data/weekly_panel/`. Direktori `aggregated/`, `panel/`, dan `features/` memisahkan agregat teramati, label panel/registry, dan kalender/lag. Run menyimpan EDA privat, laporan regularisasi, keputusan input/horizon, kontrak fitur efektif, snapshot konfigurasi/pointer/source, dan checksum input/output. Pointer WP2 tetap tersedia; `active_panel_manifest` dipakai tahap split.
+
+Panjang input dipilih dari dukungan window pada periode pengembangan usulan train saja (4 Desember 2023-29 Juni 2025), dengan mempertahankan minimal 80% jumlah window kandidat terpendek. Hasil v1 adalah encoder 12 minggu dan horizon 1 minggu; kandidat 8/12/26/52 serta perhitungannya disimpan di `window_design.json`. Lag 1/2/4/13 minggu memerlukan 25 minggu histori untuk encoder dengan seluruh lag terisi; seri pendek tetap disimpan dan kelayakan ditentukan ulang per origin pada WP4. Tidak ada pemilihan berdasarkan test atau fitting scaler/encoder pada WP3.
+
+Kalender lengkap dibatasi minggu Senin-Minggu di dalam cakupan ekstraksi tahunan yang dideklarasikan. Audit checksum, tahun KP, keberadaan bulan, dan endpoint tidak membuktikan kelengkapan setiap transaksi tanpa log ekstraksi. Snapshot juga tidak memiliki timestamp capture/revisi, sehingga ketersediaan target memakai proxy retrospektif: Senin setelah minggu berakhir, dengan delay 0 hari yang tercatat di konfigurasi. Ini asumsi eksperimen, bukan verifikasi ketersediaan operasional; WP4 dan pelaporan wajib mempertahankan keterbatasan tersebut.
 
 ## Interface model umum
 

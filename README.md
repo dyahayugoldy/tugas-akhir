@@ -56,9 +56,10 @@ Rentang tersebut adalah konfigurasi awal, bukan asumsi tetap. Pipeline harus mem
 ## Alur kerja yang dituju
 
 ```text
-XLSX SAP -> validasi + harmonisasi -> konversi mata uang -> EDA
-         -> agregasi seri mingguan -> feature contract + sliding window
-         -> split kronologis -> training 3 model -> prediksi holdout
+XLSX SAP -> validasi + harmonisasi -> filter bisnis + feature contract
+         -> EDA + panel mingguan negara-brand + kalender/lag kausal
+         -> split kronologis + preprocessing train-only + sliding window
+         -> training 3 model -> prediksi holdout
          -> metrik + waktu komputasi -> analisis komparatif
 ```
 
@@ -73,10 +74,10 @@ Setiap model harus menerima manifest data, target, split, horizon, dan protokol 
 
 ## Keputusan yang harus dibekukan sebelum training
 
-1. Target utama: kuantitas pesanan, nilai penjualan USD, atau target lain hasil EDA.
-2. Pemetaan field brand yang tervalidasi untuk agregasi seri.
-3. Sumber dan metodologi kurs historis IDR ke USD.
-4. Panjang input window, horizon prediksi, dan strategi penanganan seri baru/sangat sparse.
+1. Sudah ditetapkan: target `Order Quantity (Item)` dalam pcs, dijumlahkan tanpa pembulatan per seri-minggu.
+2. Sudah dikonfirmasi: `Sales group` adalah kolom brand; seri memakai kombinasi `country_key` dan `sales_group`.
+3. Konversi kurs tidak diperlukan untuk target kuantitas. Baris IDR difilter; fitur moneter masih dikecualikan.
+4. WP3 menetapkan input 12 minggu, horizon 1 minggu, dan minggu tanpa transaksi sebagai nol. Seri pendek/baru tetap disimpan dengan kelayakan per origin; asumsi coverage dan capture didokumentasikan.
 5. Batas final train/validation/test setelah audit kelengkapan tanggal.
 6. Protokol penalaan hyperparameter yang adil, termasuk anggaran pencarian MoEBS.
 
@@ -90,10 +91,18 @@ python -m src.utils.manifest dummy --config configs/dummy-run.v1.json
 python -m src.utils.git_protection
 ```
 
-Dummy run hanya memakai metadata sintetis dan tidak membaca XLSX SAP atau melatih model. Detail manifest, kebijakan artefak, dan langkah validasi ada di [docs/reproducibility.md](docs/reproducibility.md). Artefak WP1 bersifat privat di `artifacts/data/canonical/`; tahap berikutnya adalah WP2, keputusan bisnis dan feature contract.
+Dummy run hanya memakai metadata sintetis dan tidak membaca XLSX SAP atau melatih model. Detail manifest, kebijakan artefak, dan langkah validasi ada di [docs/reproducibility.md](docs/reproducibility.md). WP1-WP3 telah diverifikasi; tahap berikutnya adalah WP4 untuk split dan window bebas leakage. Artefak data tetap privat pada `artifacts/data/`.
 
 Untuk membuat ulang artefak WP1 dari manifest pembersihan aktif, jalankan perintah berikut dari root repositori. Perintah membuat direktori artefak baru dan tidak menimpa maupun mengubah workbook sumber.
 
 ```powershell
 python -m src.data.harmonize_workbooks --config configs/data-harmonization.v1.json
 ```
+
+Untuk membuat ulang panel WP3 dari manifest WP2 aktif:
+
+```powershell
+python -m src.data.weekly_panel --config configs/panel-weekly.v1.json
+```
+
+Perintah membuat run baru di `artifacts/data/weekly_panel/` tanpa mengubah pointer aktif otomatis. Panel, registry, fitur, EDA, dan manifest aktif dicatat pada `configs/current-data.json`. Hasil dan batas asumsi ketersediaan retrospektif tersedia di [reports/wp3-verification.md](reports/wp3-verification.md).

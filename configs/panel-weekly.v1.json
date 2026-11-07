@@ -1,0 +1,60 @@
+{
+  "config_version": "panel-weekly-v1",
+  "current_data_pointer": "configs/current-data.json",
+  "input_manifest_key": "active_business_data_manifest",
+  "feature_contract": "configs/feature-contract.v3.json",
+  "output_root": "artifacts/data/weekly_panel",
+  "decimal_precision": 50,
+  "coverage": {
+    "periods": [
+      {"source_year": 2023, "start": "2023-01-01", "end": "2023-12-31"},
+      {"source_year": 2024, "start": "2024-01-01", "end": "2024-12-31"},
+      {"source_year": 2025, "start": "2025-01-01", "end": "2025-12-31"}
+    ],
+    "basis": "Annual SAP extraction scope; verify KP year, source checksums, monthly presence, and observed endpoints",
+    "completeness_status": "declared_annual_scope_not_independently_proven_by_extraction_logs",
+    "partial_weeks": "retain_observed_aggregate_in_audit_exclude_from_panel",
+    "gaps": "reject_noncontiguous_declared_coverage"
+  },
+  "series_activity": {
+    "start": "first_observed_transaction_week",
+    "before_start": "do_not_create_rows",
+    "end": "last_complete_week_in_declared_coverage",
+    "inactivity": "retain_zero_weeks_never_infer_closure_from_last_transaction",
+    "short_series": "retain_panel_apply_history_requirement_per_origin_in_WP4",
+    "new_categories": "no_vocabulary_fit_in_WP3_train_only_encoder_and_unknown_token_in_WP4"
+  },
+  "availability": {
+    "mode": "retrospective_event_time_proxy",
+    "capture_delay_days": 0,
+    "status": "assumption_no_capture_or_revision_timestamps_in_source",
+    "weekly_target_available": "day_after_week_end_plus_capture_delay",
+    "limitation": "Backdated entries and historical revisions cannot be reconstructed from annual snapshots; WP4 must retain this assumption"
+  },
+  "features": {
+    "target_lags_weeks": [1, 2, 4, 13],
+    "calendar_fields": ["calendar_year", "iso_year", "iso_week", "month", "quarter", "week_sin", "week_cos", "month_sin", "month_cos"],
+    "week_cycle_period": 52.1775,
+    "month_cycle_period": 12,
+    "tensor_dtype": "float32",
+    "lag_missing": "retain_null_with_availability_mask_never_backfill"
+  },
+  "window_design": {
+    "development_start": "2023-12-04",
+    "development_end": "2025-06-29",
+    "scope": "proposed_train_only_design_period_not_final_WP4_split",
+    "encoder_candidates_weeks": [8, 12, 26, 52],
+    "horizon_weeks": 1,
+    "horizon_rationale": "Next weekly period, as proposed in sempro section 3.6.2; freeze one shared horizon without holdout selection",
+    "selection_rule": "largest_encoder_retaining_minimum_fraction_of_shortest_encoder_development_windows",
+    "minimum_window_retention": 0.8,
+    "require_complete_encoder_lags": true,
+    "cold_start": "no_predictions_until_encoder_and_lag_history_available"
+  },
+  "eda": {
+    "quantiles": [0.25, 0.5, 0.75, 0.95],
+    "group_fields": ["document_currency", "country_key", "sales_group"],
+    "scope": "full_period_descriptive_only_design_decisions_use_development_period_only",
+    "small_group_outputs": "private_artifacts_only"
+  }
+}
