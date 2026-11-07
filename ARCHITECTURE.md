@@ -112,7 +112,7 @@ Target kuantitas tidak memerlukan konversi mata uang dan seluruh baris IDR telah
 6. WP4 membatasi waktu secara kronologis. Vocabulary/scaler fit hanya pada train; kategori baru memakai token `unknown`. Hash `series_id` WP3 adalah identitas tuple yang stabil, bukan encoding kategori yang telah difit.
 7. Window builder membentuk pasangan `encoder_window -> forecast_horizon`, menyimpan origin timestamp, dan memanggil `features_at_origin(features, origin, lags, registry)` dengan origin asli untuk menutup lag horizon yang belum tersedia dan seri yang belum dikenal.
 
-Usulan split dari sempro adalah train Desember 2023-Juni 2025, validation Juli-Agustus 2025, dan test September-November 2025. Desember 2025 hanya boleh masuk setelah audit memastikan bulan lengkap. Juli 2023 yang tidak representatif dapat dikeluarkan sesuai justifikasi sempro. Batas ini disimpan sebagai konfigurasi dan `split_manifest`, bukan hard-code.
+Usulan sempro adalah train Desember 2023-Juni 2025, validation Juli-Agustus 2025, dan test September-November 2025. Keputusan pengguna 7 November 2026 mempertahankan Januari-Desember pada setiap sumber tahunan. WP4 mencatat deviasi pada `configs/split-window.v1.json`: train 2 Januari 2023-29 Juni 2025, validation 30 Juni-31 Agustus 2025, test 1 September-28 Desember 2025. Batas selalu Senin-Minggu dan target seluruh horizon harus berada dalam satu subset. Minggu 30 Juni-6 Juli masuk validation; empat minggu lengkap Desember masuk test, sedangkan minggu mulai 29 Desember tetap audit parsial WP3. Klaim kelengkapan transaksi tetap dibatasi asumsi cakupan sumber tahunan tanpa log ekstraksi.
 
 ### Artefak WP3 dan batas interpretasi
 
@@ -121,6 +121,18 @@ Usulan split dari sempro adalah train Desember 2023-Juni 2025, validation Juli-A
 Panjang input dipilih dari dukungan window pada periode pengembangan usulan train saja (4 Desember 2023-29 Juni 2025), dengan mempertahankan minimal 80% jumlah window kandidat terpendek. Hasil v1 adalah encoder 12 minggu dan horizon 1 minggu; kandidat 8/12/26/52 serta perhitungannya disimpan di `window_design.json`. Lag 1/2/4/13 minggu memerlukan 25 minggu histori untuk encoder dengan seluruh lag terisi; seri pendek tetap disimpan dan kelayakan ditentukan ulang per origin pada WP4. Tidak ada pemilihan berdasarkan test atau fitting scaler/encoder pada WP3.
 
 Kalender lengkap dibatasi minggu Senin-Minggu di dalam cakupan ekstraksi tahunan yang dideklarasikan. Audit checksum, tahun KP, keberadaan bulan, dan endpoint tidak membuktikan kelengkapan setiap transaksi tanpa log ekstraksi. Snapshot juga tidak memiliki timestamp capture/revisi, sehingga ketersediaan target memakai proxy retrospektif: Senin setelah minggu berakhir, dengan delay 0 hari yang tercatat di konfigurasi. Ini asumsi eksperimen, bukan verifikasi ketersediaan operasional; WP4 dan pelaporan wajib mempertahankan keterbatasan tersebut.
+
+### Kontrak WP4
+
+`python -m src.features.split_windows --config configs/split-window.v1.json` memverifikasi seluruh output WP3 dan checksum ancestor/sumber, merekonstruksi fitur untuk memeriksa lag, lalu membuat run baru privat. Pointer mutable tidak dibandingkan terhadap checksum pointer historis; snapshot pointer di dalam run tetap diverifikasi. Tidak ada histori sebelum awal eksperimen. Histori pada split sebelumnya boleh menjadi konteks bila tersedia pada origin. Semua seri dipertahankan pada panel; kelayakan window ditentukan pada setiap origin melalui registry `known_at`, 12 minggu encoder, dan lag lengkap 1/2/4/13 minggu. Histori minimum adalah 25 minggu, sehingga awal periode dipakai sebagai warm-up dan bukan seluruh baris panel menjadi label.
+
+Target distandardisasi global dengan mean/std populasi pada baris panel train unik yang tersedia pada cutoff train. Lag dan encoder target memakai scaler target yang sama; kalender memakai scaler per field dari baris train yang sama. Statistik dihitung float64 dan tensor disimpan float32; data desimal WP3 tetap tersedia untuk audit. Fitur konstan memakai scale 1. Vocabulary tiap static field hanya dari seri pada baris train yang telah diketahui, dengan `__UNKNOWN__=0`. `__UNKNOWN_COUNTRY__` adalah kategori bisnis terpisah. Tidak ada imputasi statistik atau seleksi fitur berbasis holdout. Lag decoder tidak tersedia diisi 0 pada ruang skala dengan mask false; nol ini tidak berarti permintaan nol.
+
+Tensor bersama memisahkan `encoder_observed` (target historis dan lag), `encoder_known`, `decoder_known`, `decoder_lags`, mask, dan `static_categorical`. Label `y` dalam pcs serta `y_scaled` dikembalikan terpisah dari input oleh `WindowDataset`. Seri hash adalah metadata, bukan vocabulary embedding. `tensor_schema.json` mencatat urutan field, bentuk, dan dtype. `index/window_index.csv.gz` memuat sample ID stabil, seri, origin, rentang encoder/target hingga akhir minggu, serta waktu ketersediaan maksimum input; `index/panel_split.csv.gz` mempertahankan penugasan seluruh baris panel.
+
+Evaluasi menggunakan rolling origin dengan scaler/vocabulary tetap, bukan satu origin tetap untuk seluruh test. Aktual holdout yang sudah tersedia dapat masuk histori origin selanjutnya; label horizon tidak pernah masuk input sampelnya sendiri. Dilarang menggunakan holdout untuk fit ulang, training, atau pemilihan model. Test kontrafaktual memutasi masa depan, kategori baru, dan label pada origin tertentu untuk membuktikan aturan ini; horizon lebih dari satu diuji terhadap origin asli dan batas split.
+
+Tiga konsumen NumPy (`moebs_transformer`, `nspace_transformer`, `tft`) memakai file tensor/indeks yang sama. Verifikasi membandingkan seluruh sample ID berurutan, nilai tensor, label, dan jumlah sampel pada ketiga loader tanpa membuang batch terakhir. Ini kontrak data bersama WP4; integrasi adapter framework, forward pass, dan training tetap WP5-WP6. `split_manifest.json` baru ditandai `ready_for_models=true` setelah pemeriksaan artefak dan ketiga konsumen berhasil. Setiap run menyimpan konfigurasi, seed, environment/hardware, waktu proses, snapshot source, dan checksum; run lama tidak ditimpa. WP5 harus mengikat satu manifest ini pada ketiga model, bukan membuat ulang split sendiri.
 
 ## Interface model umum
 
@@ -207,6 +219,21 @@ artifacts/
     current-data.snapshot.json
     harmonization-config.snapshot.json
     data_manifest.json
+  data/windowed/<shared_split_run_id>/
+    index/window_index.csv.gz
+    index/panel_split.csv.gz
+    tensors/train.npz
+    tensors/validation.npz
+    tensors/test.npz
+    preprocessing.json
+    tensor_schema.json
+    feature_contract.json
+    split_report.json
+    loader_verification.json
+    config.resolved.json
+    current-data.snapshot.json
+    source/
+    split_manifest.json
   runs/<run_id>/
     config.resolved.yaml
     run_manifest.json

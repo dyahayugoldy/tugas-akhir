@@ -2,7 +2,7 @@
 
 Repositori ini menyiapkan implementasi penelitian tugas akhir berjudul **Analisis Komparatif Model Transformer untuk Prediksi Penjualan Ekspor Multivariat dengan Studi Kasus Data SAP Perusahaan XYZ**.
 
-Status saat ini: WP0 dan WP1 telah selesai. Pipeline WP1 membangun transaksi kanonis privat beserta audit skema, kualitas data, dan manifest yang dapat direproduksi. Model serta hasil eksperimen belum diimplementasikan.
+Status saat ini: WP0-WP4 telah selesai dan diverifikasi. WP4 membekukan split kronologis, preprocessing train-only, window tensor, dan kontrak data bersama. Model serta hasil eksperimen belum diimplementasikan. Bukti tahap split tersedia di [reports/wp4-verification.md](reports/wp4-verification.md).
 
 ## Ringkasan penelitian
 
@@ -33,8 +33,8 @@ Kolom yang relevan antara lain `KP Date`, `CRD Date`, `Order Quantity (Item)`, `
 
 ### Catatan kualitas data
 
-- `Brand` disebut sebagai fitur kontekstual di sempro, tetapi tidak ditemukan sebagai nama kolom eksplisit. Hubungan `Search Term` atau atribut lain terhadap brand perlu dikonfirmasi dengan data dictionary/perusahaan.
-- `Net Value (Item)` dicatat dalam USD dan IDR. Sempro mencatat 117.824 baris USD dan 341 baris IDR; nilai IDR harus dikonversi ke USD dengan kurs historis bertanggal sebelum menjadi target atau fitur numerik bersama.
+- Pengguna mengonfirmasi `Sales group` sebagai brand pada 6 November 2026. Seri memakai kombinasi `country_key` dan `sales_group`; `Search Term` tidak dipakai sebagai brand.
+- Target adalah `Order Quantity (Item)` dalam pcs. Baris mata uang IDR dikeluarkan melalui filter bisnis bersama; fitur moneter dikecualikan, sehingga tidak ada konversi kurs pada pipeline aktif.
 - Field status atau informasi yang terbentuk setelah transaksi tidak boleh menjadi fitur prediksi tanpa pembuktian bahwa nilainya sudah diketahui pada waktu prediksi.
 - Data SAP bersifat sensitif dan tidak boleh dipublikasikan atau dilacak Git.
 
@@ -51,7 +51,17 @@ Pembagian data harus kronologis. Usulan sempro adalah:
 | Test | September - November 2025 |
 | Dikeluarkan | Juli 2023 yang tidak representatif dan Desember 2025 bila bulan tidak lengkap |
 
-Rentang tersebut adalah konfigurasi awal, bukan asumsi tetap. Pipeline harus memverifikasi kelengkapan data Desember 2025 dan membekukan `data_manifest` sebelum training pertama.
+Keputusan pengguna 7 November 2026 mempertahankan cakupan Januari-Desember pada ketiga sumber tahunan. Konfigurasi WP4 `configs/split-window.v1.json` menggunakan semua minggu lengkap berikut, sebagai deviasi terdokumentasi dari usulan sempro:
+
+| Subset | Rentang minggu utuh (termasuk hari terakhir) |
+| --- | --- |
+| Train | 2 Januari 2023 - 29 Juni 2025 |
+| Validation | 30 Juni - 31 Agustus 2025 |
+| Test | 1 September - 28 Desember 2025 |
+
+Minggu 30 Juni-6 Juli masuk validation tanpa membelah minggu. Empat minggu lengkap Desember 2025 disertakan; minggu 29 Desember-4 Januari dikecualikan karena melewati cakupan sumber. Minggu lintas tahun internal tetap utuh setelah sumber digabungkan. Kelengkapan seluruh transaksi tetap merupakan asumsi cakupan tahunan karena log ekstraksi tidak tersedia; ini bukan bukti bahwa Desember tidak lengkap. Cakupan bulan yang sama tidak menjamin jumlah minggu atau sampel tiap tahun sama.
+
+Protokol evaluasi adalah rolling-origin satu minggu dengan preprocessing tetap. Aktual validation/test boleh menjadi histori pada origin berikutnya setelah tersedia, tetapi label horizon suatu sampel tidak boleh masuk input sampel tersebut. Tidak ada fit ulang pada holdout.
 
 ## Alur kerja yang dituju
 
@@ -78,7 +88,7 @@ Setiap model harus menerima manifest data, target, split, horizon, dan protokol 
 2. Sudah dikonfirmasi: `Sales group` adalah kolom brand; seri memakai kombinasi `country_key` dan `sales_group`.
 3. Konversi kurs tidak diperlukan untuk target kuantitas. Baris IDR difilter; fitur moneter masih dikecualikan.
 4. WP3 menetapkan input 12 minggu, horizon 1 minggu, dan minggu tanpa transaksi sebagai nol. Seri pendek/baru tetap disimpan dengan kelayakan per origin; asumsi coverage dan capture didokumentasikan.
-5. Batas final train/validation/test setelah audit kelengkapan tanggal.
+5. WP4 membekukan rentang kalender di atas, encoder 12 minggu, horizon 1 minggu, scaler/vocabulary train-only, dan indeks sampel bersama.
 6. Protokol penalaan hyperparameter yang adil, termasuk anggaran pencarian MoEBS.
 
 Untuk memverifikasi WP0 dari root repositori (Python 3.12):
@@ -91,7 +101,7 @@ python -m src.utils.manifest dummy --config configs/dummy-run.v1.json
 python -m src.utils.git_protection
 ```
 
-Dummy run hanya memakai metadata sintetis dan tidak membaca XLSX SAP atau melatih model. Detail manifest, kebijakan artefak, dan langkah validasi ada di [docs/reproducibility.md](docs/reproducibility.md). WP1-WP3 telah diverifikasi; tahap berikutnya adalah WP4 untuk split dan window bebas leakage. Artefak data tetap privat pada `artifacts/data/`.
+Dummy run hanya memakai metadata sintetis dan tidak membaca XLSX SAP atau melatih model. Detail manifest, kebijakan artefak, dan langkah validasi ada di [docs/reproducibility.md](docs/reproducibility.md). Artefak data tetap privat pada `artifacts/data/`; model dan training menjadi pekerjaan WP5-WP6.
 
 Untuk membuat ulang artefak WP1 dari manifest pembersihan aktif, jalankan perintah berikut dari root repositori. Perintah membuat direktori artefak baru dan tidak menimpa maupun mengubah workbook sumber.
 
@@ -106,3 +116,11 @@ python -m src.data.weekly_panel --config configs/panel-weekly.v1.json
 ```
 
 Perintah membuat run baru di `artifacts/data/weekly_panel/` tanpa mengubah pointer aktif otomatis. Panel, registry, fitur, EDA, dan manifest aktif dicatat pada `configs/current-data.json`. Hasil dan batas asumsi ketersediaan retrospektif tersedia di [reports/wp3-verification.md](reports/wp3-verification.md).
+
+Untuk membuat ulang split dan window WP4 dari panel aktif:
+
+```powershell
+python -m src.features.split_windows --config configs/split-window.v1.json
+```
+
+Perintah membuat run privat unik di `artifacts/data/windowed/` dan tidak mengganti pointer aktif otomatis. `split_manifest.json` mengikat indeks, tensor NumPy, preprocessing, konfigurasi, kontrak fitur, checksum, dan hasil verifikasi tiga konsumen. `WindowDataset` menyediakan batch input, label, dan metadata terpisah untuk MoEBS, N-Space, dan TFT; adapter framework/model akan diimplementasikan pada WP5.

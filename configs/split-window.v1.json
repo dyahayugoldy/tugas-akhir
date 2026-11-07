@@ -1,0 +1,46 @@
+{
+  "config_version": "split-window-v1",
+  "current_data_pointer": "configs/current-data.json",
+  "input_manifest_key": "active_panel_manifest",
+  "output_root": "artifacts/data/windowed",
+  "seed": 42,
+  "models": ["moebs_transformer", "nspace_transformer", "tft"],
+  "split": {
+    "train": {"start": "2023-01-02", "end": "2025-06-29"},
+    "validation": {"start": "2025-06-30", "end": "2025-08-31"},
+    "test": {"start": "2025-09-01", "end": "2025-12-28"}
+  },
+  "calendar_policy": "whole_monday_sunday_weeks_contiguous_target_ranges",
+  "evaluation": "rolling_origin_observed_history_frozen_preprocessing",
+  "history": "within_experiment_start_prior_splits_allowed_if_available_at_origin",
+  "window": {
+    "encoder_weeks": 12,
+    "horizon_weeks": 1,
+    "stride_weeks": 1,
+    "require_complete_encoder_lags": true,
+    "cold_start": "exclude_sample_until_history_available_report_per_split"
+  },
+  "preprocessing": {
+    "target_scaler": "global_standard_train_unique_panel_rows_ddof0",
+    "lag_scaler": "shared_target_scaler",
+    "calendar_scaler": "per_field_standard_train_unique_panel_rows_ddof0",
+    "constant_scale": 1.0,
+    "unavailable_lag": "scaled_zero_with_false_mask_no_statistical_imputation",
+    "unknown_token": "__UNKNOWN__",
+    "unknown_id": 0,
+    "numeric_dtype": "float32",
+    "categorical_dtype": "int64",
+    "feature_selection": "fixed_WP3_contract_no_data_driven_selection"
+  },
+  "loader": {"batch_size": 256, "shuffle": false, "drop_last": false},
+  "decisions": {
+    "source_months": "January_December_for_each_source_year_2023_2024_2025",
+    "experiment_start": "Use_all_complete_weeks_from_January_2023_per_user_request_2026_11_07",
+    "december_2025": "Include_four_complete_weeks_01_28_December_exclude_partial_29_December_04_January",
+    "boundary_week": "30_June_06_July_2025_assigned_wholly_to_validation",
+    "deviation_from_proposal": "Train_starts_January_2023_instead_of_December_2023_and_test_includes_complete_December_2025_weeks",
+    "coverage": "Retain_WP3_declared_annual_coverage_assumption_no_independent_extraction_logs",
+    "availability": "Retain_WP3_retrospective_proxy_no_capture_revision_timestamps",
+    "month_balance": "Equal_source_month_coverage_does_not_imply_equal_week_or_sample_counts"
+  }
+}

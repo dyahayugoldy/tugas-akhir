@@ -1,5 +1,5 @@
 {
-  "config_version": "current-data-v5",
+  "config_version": "current-data-v6",
   "active_cleaning_config": "configs/data-cleaning.v2.json",
   "active_manifest": "artifacts/data/cleaned/clean-v2_20261104T040822Z_a4d0b0f7/cleaning_manifest.json",
   "missingness_report": "artifacts/data/cleaned/clean-v2_20261104T040822Z_a4d0b0f7/missingness_by_column.csv",
@@ -26,6 +26,15 @@
   "active_panel_feature_contract": "artifacts/data/weekly_panel/panel-weekly-v1_20261106T091154Z_6030bb53/feature_contract.json",
   "active_window_design": "artifacts/data/weekly_panel/panel-weekly-v1_20261106T091154Z_6030bb53/window_design.json",
   "panel_ready_for_split": true,
+  "split_window_config": "configs/split-window.v1.json",
+  "active_split_manifest": "artifacts/data/windowed/shared_split-window-v1_seed-42_20261107T010824Z_3cba52aa/split_manifest.json",
+  "active_window_index": "artifacts/data/windowed/shared_split-window-v1_seed-42_20261107T010824Z_3cba52aa/index/window_index.csv.gz",
+  "active_panel_split": "artifacts/data/windowed/shared_split-window-v1_seed-42_20261107T010824Z_3cba52aa/index/panel_split.csv.gz",
+  "active_preprocessing": "artifacts/data/windowed/shared_split-window-v1_seed-42_20261107T010824Z_3cba52aa/preprocessing.json",
+  "active_tensor_schema": "artifacts/data/windowed/shared_split-window-v1_seed-42_20261107T010824Z_3cba52aa/tensor_schema.json",
+  "active_split_report": "artifacts/data/windowed/shared_split-window-v1_seed-42_20261107T010824Z_3cba52aa/split_report.json",
+  "active_loader_verification": "artifacts/data/windowed/shared_split-window-v1_seed-42_20261107T010824Z_3cba52aa/loader_verification.json",
+  "split_ready_for_models": true,
   "column_missingness_policy": "preserve_all_columns_including_entirely_empty_columns",
   "superseded_column_deletion_runs": [
     "clean-v1_20261104T031315Z_9f676a7e",

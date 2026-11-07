@@ -4,7 +4,7 @@ Dokumen ini memecah penelitian menjadi pekerjaan yang dapat diverifikasi. Urutan
 
 ## Indikator status
 
-Status di bawah diaudit hingga 6 November 2026 berdasarkan artefak yang ada di repositori. Status `✅ Selesai` hanya dipakai setelah seluruh kriteria pada bagian **Selesai bila** dapat dibuktikan.
+Status di bawah diaudit hingga 7 November 2026 berdasarkan artefak yang ada di repositori. Status `✅ Selesai` hanya dipakai setelah seluruh kriteria pada bagian **Selesai bila** dapat dibuktikan.
 
 | Indikator | Arti |
 | --- | --- |
@@ -127,16 +127,16 @@ Nama berkas sumber, checksum, dan manifest aktif harus selalu diambil dari konfi
 
 ## WP4 - Split dan pembentukan window bebas leakage
 
-**Status: ⬜ Belum dimulai.** Batas split masih berupa usulan sempro; belum ada konfigurasi final, split manifest, atau test leakage.
+**Status: ✅ Selesai (diverifikasi 7 November 2026).** Konfigurasi `split-window.v1.json` membekukan seluruh minggu lengkap Januari 2023-Desember 2025 sesuai keputusan pengguna. Train: 2 Januari 2023-29 Juni 2025; validation: 30 Juni-31 Agustus 2025; test: 1 September-28 Desember 2025. Pipeline menghasilkan 13.663/1.587/3.187 window dengan encoder 12 minggu, horizon 1 minggu, preprocessing train-only, mask origin, dan indeks immutable bersama. Seluruh 60 unittest lulus, termasuk 12 pengujian WP4. Loader NumPy untuk ketiga konsumen menghasilkan urutan sampel, nilai tensor, dan jumlah sampel identik; adapter framework dan model tetap pekerjaan WP5. Bukti, reproduksi, deviasi sempro, dan keterbatasan tersedia di [reports/wp4-verification.md](reports/wp4-verification.md).
 
 **Tujuan:** menghasilkan contoh train, validation, dan test yang sepenuhnya kronologis.
 
-- Audit kelengkapan periode dan finalkan batas kalender. Mulai dari usulan sempro: train Des 2023-Jun 2025, validation Jul-Agu 2025, test Sep-Nov 2025.
-- Putuskan dengan bukti apakah Desember 2025 dapat digunakan atau dikeluarkan.
-- Fit scaler, vocabulary/encoder, imputasi statistik, dan pemilihan fitur menggunakan train saja.
-- Bentuk sliding window dengan penanda origin, encoder range, dan target range.
-- Pastikan target window validation/test tidak muncul pada fitur window mana pun.
-- Simpan daftar index/panel split sebagai artefak immutable yang dipakai ketiga model.
+- [x] Audit cakupan WP3 dan finalkan batas Senin-Minggu dalam konfigurasi. Pengguna memilih cakupan sumber Januari-Desember pada ketiga tahun; perpanjangan awal train dan akhir test dicatat sebagai deviasi sempro. Jumlah minggu/sampel tiap tahun tidak disamakan secara paksa.
+- [x] Sertakan empat minggu lengkap 1-28 Desember 2025. Minggu mulai 29 Desember tetap berada di audit parsial WP3. Pertahankan keterbatasan kelengkapan ekstraksi tahunan dan ketersediaan retrospektif tanpa timestamp capture/revisi.
+- [x] Fit scaler target global, kalender per field, dan vocabulary hanya pada baris train unik yang tersedia pada cutoff. Lag memakai scaler target bersama; tidak ada imputasi statistik atau pemilihan fitur dari holdout. Kategori baru memakai `__UNKNOWN__=0`, berbeda dari kategori negara kosong.
+- [x] Bentuk sliding window dengan sample ID stabil, origin, rentang encoder/target, dan waktu maksimum ketersediaan input. Seri pendek/baru diputuskan per origin; simpan statistik eksklusi tanpa membuang seri dari panel.
+- [x] Buktikan label horizon suatu sampel tidak masuk input sampel tersebut. Evaluasi rolling-origin mengizinkan aktual validation/test yang sudah tersedia menjadi histori origin berikutnya dengan preprocessing tetap; tidak mengizinkan fit/training pada holdout. Rumusan sebelumnya yang melarang seluruh target holdout muncul pada fitur window mana pun diperjelas agar konsisten dengan protokol rolling-origin.
+- [x] Simpan panel split, indeks window, tensor per split, preprocessing, kontrak fitur, source snapshot, checksum, dan manifest pada run privat unik. Tiga konsumen memakai file identik dan tidak membuang batch terakhir; persamaan sample ID, tensor, label, serta jumlah sampel diverifikasi.
 
 **Selesai bila:** test contract membuktikan batas waktu, scaler train-only, dan kesetaraan sample count pada tiga dataloader.
 
