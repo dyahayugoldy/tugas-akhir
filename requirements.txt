@@ -1,4 +1,4 @@
-# WP0 manifest validation; deep-learning dependencies are selected in WP5.
+# Manifest validation and shared WP0-WP5 runtime.
 jsonschema==4.25.1
 
 # Local SAP workbook audit and reproducible cleaning.
@@ -7,3 +7,6 @@ openpyxl==3.1.5
 
 # Shared WP4 tensor artifacts and model-neutral data loaders.
 numpy==2.2.6
+
+# One framework for all WP5 architectures (CPU wheel used for acceptance).
+torch==2.9.1

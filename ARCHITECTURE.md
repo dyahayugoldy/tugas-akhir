@@ -145,26 +145,36 @@ save(path) / load(path)
 metadata() -> architecture, parameter_count, effective_config
 ```
 
-Input umum memuat tensor encoder target/observed covariates, known covariates, static covariates, `series_id`, mask, dan target horizon. Adapter bertanggung jawab mengubah bentuk tensor umum ke kebutuhan internal tanpa mengubah sample, split, atau horizon.
+Input umum memuat tensor encoder target historis/observed covariates, known covariates, static covariates, dan mask. `series_id` hanya metadata; label horizon terpisah dari input forward. Adapter bertanggung jawab mengubah bentuk tensor umum ke kebutuhan internal tanpa mengubah sample, split, atau horizon.
+
+Implementasi WP5 tersedia melalui `src/models/adapter.py`, `networks.py`, dan `search.py`, dengan satu framework PyTorch. `ModelData` mengikat schema, ukuran vocabulary train, scaler, panjang encoder/horizon, ID dan SHA256 manifest WP4. `fit` menerima train/validation dengan binding yang identik dan mengembalikan model serta catatan training; runner merakit catatan tersebut menjadi run manifest. Checkpoint eksklusif menyimpan state dict, konfigurasi efektif, seed, kontrak data dan catatan training; reload memeriksa checksum/kontrak dan mendukung inferensi, bukan resume optimizer.
+
+`python -m src.models.acceptance --config configs/models.wp5.v1.json` menjalankan acceptance satu epoch dengan budget kandidat setara, menyimpan semua trial/prediksi validation, dan memverifikasi reload persis. `run_type=acceptance` membedakan bukti implementasi dari eksperimen resmi. Cohort mengikat tiga run, checksum manifest, digest sampel/tensor dan jumlah evaluasi yang sama. Test hanya diperiksa integritasnya oleh validator WP4, tidak diprediksi oleh model. Spesifikasi dan deviasi paper lengkap tersedia di [docs/wp5-models.md](docs/wp5-models.md).
 
 ### MoEBS-Transformer
 
 Komponen: Transformer forecasting core dan optimasi Multiple Objectives Escaping Bird Search. Konfigurasi wajib menyimpan objective, ruang hyperparameter, populasi, jumlah iterasi/evaluasi, seed, batas waktu, kandidat terpilih, dan nilai validation untuk seluruh kandidat. Objective tidak boleh melihat test set.
 
+WP5 mengimplementasikan gerak predator/prey EBS, archive Pareto dan grid crowding/leader. Objective adalah validation RMSE, validation MAE dan jumlah parameter sebagai proxy biaya. Ruang pencarian meliputi model width, head, learning rate dan weight decay. Penggunaan metrik test pada paper asal diganti validation; aturan pasangan, decoding diskret dan fallback numerik didokumentasikan sebagai adaptasi.
+
 ### N-Space Transformer
 
 Komponen: contextual module, N-space transformation, dan encoder-decoder Transformer. Mapping embedding/kategori serta dimensi N-space harus berasal dari train dan dicatat sebagai bagian konfigurasi efektif.
 
+Acuan adalah L'Heureux dkk. (2022), tanpa modul Attention Memory dari varian 2026. Proyeksi N-space linear dipelajari bersama encoder-decoder. Decoder dimulai dari target encoder terakhir yang tersedia, lalu memakai prediksinya sendiri dan konteks yang tersedia pada origin; tidak menerima label masa depan, termasuk saat training multi-step.
+
 ### Temporal Fusion Transformer
 
 Komponen: static covariate encoder, variable selection network, gated residual components, recurrent encoder/decoder, dan temporal attention. Bentuk pembagian static, known, dan observed covariates harus mengacu langsung pada feature contract. Feature importance hanya ditafsirkan dari run holdout yang sah dan stabil antar seed.
+
+TFT WP5 memakai empat static context GRN, VSN static/encoder/decoder, LSTM encoder/decoder, gated residual dan static enrichment, serta interpretable attention dengan shared V dan rata-rata head. Adaptasi point output/MSE menggantikan quantile head/loss asli. Bobot selection/attention tersedia untuk analisis kemudian; mask availability melekat pada variabel, bukan fitur bisnis baru.
 
 ## Training dan eksperimen
 
 ```text
 experiment config
   -> resolve data_manifest + split_manifest
-  -> build identical windows
+  -> load identical sealed WP4 windows (do not rebuild splits)
   -> train one model for each seed
   -> select checkpoint from validation
   -> infer once on sealed test set

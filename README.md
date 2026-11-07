@@ -2,7 +2,7 @@
 
 Repositori ini menyiapkan implementasi penelitian tugas akhir berjudul **Analisis Komparatif Model Transformer untuk Prediksi Penjualan Ekspor Multivariat dengan Studi Kasus Data SAP Perusahaan XYZ**.
 
-Status saat ini: WP0-WP4 telah selesai dan diverifikasi. WP4 membekukan split kronologis, preprocessing train-only, window tensor, dan kontrak data bersama. Model serta hasil eksperimen belum diimplementasikan. Bukti tahap split tersedia di [reports/wp4-verification.md](reports/wp4-verification.md).
+Status saat ini: WP0-WP5 telah selesai dan diverifikasi. WP4 membekukan split kronologis, preprocessing train-only, dan tensor bersama; WP5 menyediakan tiga model PyTorch, adapter/checkpoint seragam, optimasi berbasis validation, dan acceptance satu epoch. Eksperimen komparatif resmi multi-seed serta evaluasi test tetap WP6-WP7. Bukti tersedia di [reports/wp4-verification.md](reports/wp4-verification.md) dan [reports/wp5-verification.md](reports/wp5-verification.md).
 
 ## Ringkasan penelitian
 
@@ -101,7 +101,7 @@ python -m src.utils.manifest dummy --config configs/dummy-run.v1.json
 python -m src.utils.git_protection
 ```
 
-Dummy run hanya memakai metadata sintetis dan tidak membaca XLSX SAP atau melatih model. Detail manifest, kebijakan artefak, dan langkah validasi ada di [docs/reproducibility.md](docs/reproducibility.md). Artefak data tetap privat pada `artifacts/data/`; model dan training menjadi pekerjaan WP5-WP6.
+Dummy run hanya memakai metadata sintetis dan tidak membaca XLSX SAP atau melatih model. Detail manifest, kebijakan artefak, dan langkah validasi ada di [docs/reproducibility.md](docs/reproducibility.md). Artefak data tetap privat pada `artifacts/data/`; checkpoint dan hasil acceptance WP5 tersimpan privat di `artifacts/runs/`.
 
 Untuk membuat ulang artefak WP1 dari manifest pembersihan aktif, jalankan perintah berikut dari root repositori. Perintah membuat direktori artefak baru dan tidak menimpa maupun mengubah workbook sumber.
 
@@ -123,4 +123,18 @@ Untuk membuat ulang split dan window WP4 dari panel aktif:
 python -m src.features.split_windows --config configs/split-window.v1.json
 ```
 
-Perintah membuat run privat unik di `artifacts/data/windowed/` dan tidak mengganti pointer aktif otomatis. `split_manifest.json` mengikat indeks, tensor NumPy, preprocessing, konfigurasi, kontrak fitur, checksum, dan hasil verifikasi tiga konsumen. `WindowDataset` menyediakan batch input, label, dan metadata terpisah untuk MoEBS, N-Space, dan TFT; adapter framework/model akan diimplementasikan pada WP5.
+Perintah membuat run privat unik di `artifacts/data/windowed/` dan tidak mengganti pointer aktif otomatis. `split_manifest.json` mengikat indeks, tensor NumPy, preprocessing, konfigurasi, kontrak fitur, checksum, dan hasil verifikasi tiga konsumen. `WindowDataset` menyediakan batch input, label, dan metadata terpisah untuk MoEBS, N-Space, dan TFT; adapter PyTorch WP5 memakai artefak ini langsung.
+
+## Model dan acceptance WP5
+
+Ketiga arsitektur menyediakan `fit`, `predict`, `save`, `load`, dan metadata melalui `ForecastAdapter`. Konfigurasi `configs/models.wp5.v1.json` menetapkan CPU float32, seed 42, empat kandidat per model, satu epoch per kandidat, dan batas waktu bersama. MoEBS memakai Pareto search; N-Space/TFT memakai random search dengan budget yang sama. Pemilihan kandidat/checkpoint hanya memakai validation. Ini pemeriksaan implementasi, belum hasil akhir perbandingan.
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install torch==2.9.1 --index-url https://download.pytorch.org/whl/cpu
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m src.models.acceptance --config configs/models.wp5.v1.json
+```
+
+Runner membuat run unik, checkpoint, prediksi/metrics validation, seluruh trial, source snapshot, manifest dengan checksum, dan satu berkas cohort yang mengikat ketiga run. Test tidak diprediksi pada WP5. Rincian acuan, adaptasi kausal, batas interpretasi, dan rekomendasi resource/seed WP6 ada di [docs/wp5-models.md](docs/wp5-models.md).

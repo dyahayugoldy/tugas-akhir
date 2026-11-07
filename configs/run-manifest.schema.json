@@ -23,7 +23,8 @@
   ],
   "properties": {
     "schema_version": {"const": "1"},
-    "run_type": {"enum": ["dummy", "experiment"]},
+    "run_type": {"enum": ["dummy", "acceptance", "experiment"]},
+    "wp5": {"type": "object"},
     "config_version": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
     "created_at_utc": {"type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"},
     "source_dirty": {"type": "boolean"},
@@ -119,5 +120,11 @@
       "metrics": {"$ref": "#/$defs/artifact_path"},
       "dummy_output": {"type": "null"}
     }}}}
+  }, {
+    "if": {"properties": {"run_type": {"const": "acceptance"}}},
+    "then": {"required": ["wp5"], "properties": {"wp5": {
+      "required": ["purpose", "verification", "source_code_sha256", "split_manifest_sha256", "checksums"],
+      "properties": {"purpose": {"const": "WP5_acceptance_not_final_comparison"}}
+    }}}
   }]
 }

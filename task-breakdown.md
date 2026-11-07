@@ -142,22 +142,22 @@ Nama berkas sumber, checksum, dan manifest aktif harus selalu diambil dari konfi
 
 ## WP5 - Implementasi model dengan interface seragam
 
-**Status: ⬜ Belum dimulai.** Belum ada implementasi model, interface bersama, maupun unit test model di repositori.
+**Status: ✅ Selesai (diverifikasi 7 November 2026).** Ketiga arsitektur PyTorch memakai `ForecastAdapter` dan manifest WP4 yang sama. Acceptance menjalankan empat kandidat per model, masing-masing satu epoch penuh pada 13.663 sampel train; 1.587 prediksi validation per model identik setelah checkpoint reload. Seluruh 72 test lulus, termasuk 12 test WP5. Bukti dan batas klaim tersedia di [reports/wp5-verification.md](reports/wp5-verification.md); acuan/adaptasi tercatat pada [docs/wp5-models.md](docs/wp5-models.md). Acceptance seed tunggal bukan eksperimen komparatif resmi; test belum diprediksi.
 
 **Tujuan:** membuat tiga implementasi dapat dilatih dan dievaluasi dengan kontrak yang sama.
 
-- Definisikan interface bersama: `fit`, `predict`, `save`, `load`, dan metadata arsitektur.
-- Implementasikan MoEBS-Transformer dengan objective, ruang pencarian, batas jumlah evaluasi, seed, dan kriteria berhenti yang terdokumentasi.
-- Implementasikan N-Space Transformer dengan contextual module, N-space transformation, serta encoder-decoder sesuai acuan yang dipilih.
-- Implementasikan TFT dengan static/known/observed covariate contract, variable selection network, recurrent encoder/decoder, gating, dan attention.
-- Tambahkan unit test untuk bentuk tensor, masking, kategori unknown, horizon lebih dari satu, dan checkpoint reload.
-- Catat setiap deviasi dari paper acuan beserta alasan adaptasi ke data SAP.
+- [x] Definisikan interface bersama: `fit`, `predict`, `save`, `load`, dan metadata arsitektur.
+- [x] Implementasikan MoEBS-Transformer dengan objective, ruang pencarian, batas jumlah evaluasi, seed, dan kriteria berhenti yang terdokumentasi.
+- [x] Implementasikan N-Space Transformer dengan contextual module, N-space transformation, serta encoder-decoder sesuai acuan yang dipilih.
+- [x] Implementasikan TFT dengan static/known/observed covariate contract, variable selection network, recurrent encoder/decoder, gating, dan attention.
+- [x] Tambahkan unit test untuk bentuk tensor, masking, kategori unknown, horizon lebih dari satu, dan checkpoint reload.
+- [x] Catat setiap deviasi dari paper acuan beserta alasan adaptasi ke data SAP.
 
 **Selesai bila:** ketiga model dapat melakukan forward pass, satu epoch, checkpoint reload, dan prediksi pada batch yang sama tanpa kebocoran data.
 
 ## WP6 - Protokol training yang adil
 
-**Status: ⬜ Belum dimulai.** Utilitas manifest dan dummy run tersedia dari WP0; belum ada runner training, konfigurasi resource/seed eksperimen, manifest hasil training, atau checkpoint.
+**Status: ⬜ Belum dimulai untuk eksperimen resmi.** WP5 menyediakan adapter training, runner acceptance, checkpoint/manifest, dan konfigurasi resource awal serta usulan seed 42/123/2026. Protokol training multi-seed resmi, kalibrasi hardware/resource, dan eksperimen hingga konvergensi tetap pekerjaan WP6; acceptance satu epoch tidak memenuhi kriteria WP6.
 
 **Tujuan:** mencegah perbedaan hasil akibat perlakuan eksperimen yang tidak setara.
 
@@ -171,7 +171,7 @@ Nama berkas sumber, checksum, dan manifest aktif harus selalu diambil dari konfi
 
 ## WP7 - Evaluasi dan analisis error
 
-**Status: ⬜ Belum dimulai.** Belum ada prediction artifact, implementasi metrik, atau analisis error test.
+**Status: ⬜ Belum dimulai untuk evaluasi test.** WP5 menyediakan metrik bersama MAE/RMSE/MAPE/SMAPE/`r2` beserta prediksi validation acceptance. Prediction artifact dan analisis error test belum dibuat; WP7 menggunakan model hasil protokol resmi WP6.
 
 **Tujuan:** menghasilkan hasil kuantitatif yang dapat dibandingkan langsung.
 
