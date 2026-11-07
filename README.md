@@ -2,7 +2,7 @@
 
 Repositori ini menyiapkan implementasi penelitian tugas akhir berjudul **Analisis Komparatif Model Transformer untuk Prediksi Penjualan Ekspor Multivariat dengan Studi Kasus Data SAP Perusahaan XYZ**.
 
-Status saat ini: WP0-WP5 telah selesai dan diverifikasi. WP4 membekukan split kronologis, preprocessing train-only, dan tensor bersama; WP5 menyediakan tiga model PyTorch, adapter/checkpoint seragam, optimasi berbasis validation, dan acceptance satu epoch. Eksperimen komparatif resmi multi-seed serta evaluasi test tetap WP6-WP7. Bukti tersedia di [reports/wp4-verification.md](reports/wp4-verification.md) dan [reports/wp5-verification.md](reports/wp5-verification.md).
+Status saat ini: WP0-WP6 selesai dan diverifikasi. WP6 menghasilkan tiga hasil tuning dan sembilan checkpoint final (3 model × seed 42/123/2026), dengan maksimum 100 epoch dan patience 10. Cohort dan audit resume/resource telah disahkan dengan keterbatasan biaya retry yang dilaporkan; total compute aktual tidak diklaim identik. Evaluasi test belum dilakukan dan tetap menjadi WP7. Bukti tersedia di [reports/wp6-verification.md](reports/wp6-verification.md), dengan lineage data/model pada [reports/wp4-verification.md](reports/wp4-verification.md) dan [reports/wp5-verification.md](reports/wp5-verification.md).
 
 ## Ringkasan penelitian
 

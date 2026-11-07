@@ -157,15 +157,15 @@ Nama berkas sumber, checksum, dan manifest aktif harus selalu diambil dari konfi
 
 ## WP6 - Protokol training yang adil
 
-**Status: ⬜ Belum dimulai untuk eksperimen resmi.** WP5 menyediakan adapter training, runner acceptance, checkpoint/manifest, dan konfigurasi resource awal serta usulan seed 42/123/2026. Protokol training multi-seed resmi, kalibrasi hardware/resource, dan eksperimen hingga konvergensi tetap pekerjaan WP6; acceptance satu epoch tidak memenuhi kriteria WP6.
+**Status: ✅ Selesai dengan keterbatasan resource yang dilaporkan (7 November 2026).** Cohort mengikat 3 hasil tuning dan 9 final run dari seed 42/123/2026. Seluruh checkpoint, manifest, data/split, pemilihan kandidat, early stopping, prediksi validation dan metrik telah diaudit. Provenance resume TFT dan seluruh fit retry yang tercatat direkonsiliasi tanpa mengubah manifest lama. Anggaran seleksi 4 kandidat/model sebanding; total compute fisik berbeda akibat retry dan diungkapkan sebagai keterbatasan. Seluruh 83 test lulus. Bukti, cohort resmi dan perintah verifikasi ada di [reports/wp6-verification.md](reports/wp6-verification.md). Test belum diprediksi oleh model; evaluasi tetap WP7.
 
 **Tujuan:** mencegah perbedaan hasil akibat perlakuan eksperimen yang tidak setara.
 
-- Tetapkan seed list, hardware, precision, batch policy, maximum epoch, early stopping, dan budget penalaan.
-- Jalankan minimal beberapa seed yang sama untuk setiap model; gunakan seed tunggal hanya bila keterbatasan komputasi dicatat.
-- Gunakan validation saja untuk pemilihan checkpoint dan hyperparameter, bukan test.
-- Catat wall-clock training, GPU/CPU, memori puncak jika tersedia, jumlah parameter, dan waktu inferensi pada jumlah sample tetap.
-- Simpan konfigurasi efektif, log, checkpoint terbaik, dan `run_manifest` per run.
+- [x] Bekukan seed 42/123/2026, CPU float32, dua thread, batch 256, maksimum 100 epoch, patience 10, dan budget penalaan pada konfigurasi WP6.
+- [x] Selesaikan sembilan final run dari inisialisasi baru: tiga model dengan tiga seed yang sama; seluruh checkpoint terverifikasi.
+- [x] Gunakan validation saja untuk pemilihan checkpoint dan hyperparameter; evaluasi test tetap WP7.
+- [x] Catat wall-clock training, hardware, jumlah parameter, dan waktu inferensi pada jumlah sampel validation yang sama. Peak memory CPU tidak tersedia; biaya retry dan keterbatasan pengukuran dilaporkan.
+- [x] Simpan konfigurasi efektif, riwayat epoch, checkpoint terbaik, dan `run_manifest` per run; sahkan cohort beserta audit provenance dan resource.
 
 **Selesai bila:** setiap model memiliki jumlah run dan definisi resource yang sebanding atau deviasinya dijustifikasi dalam laporan.
 

@@ -1,0 +1,96 @@
+{
+  "config_version": "models-wp6-v1",
+  "purpose": "WP6_fair_training_protocol",
+  "current_data_pointer": "configs/current-data.json",
+  "output_root": "artifacts/runs",
+  "runtime": {
+    "device": "cpu",
+    "precision": "float32",
+    "threads": 2,
+    "deterministic": true
+  },
+  "training": {
+    "batch_size": 256,
+    "max_epochs": 100,
+    "patience": 10,
+    "min_delta": 0.0,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "gradient_clip": 1.0,
+    "optimizer": "adamw",
+    "loss": "mse",
+    "shuffle": true,
+    "max_seconds": 3600,
+    "checkpoint_selection": "validation_rmse"
+  },
+  "metrics": {
+    "smape_epsilon": 0.000001,
+    "constant_r2": "null",
+    "mape": "actual_nonzero_only"
+  },
+  "models": {
+    "moebs_transformer": {
+      "d_model": 32,
+      "n_heads": 2,
+      "encoder_layers": 2,
+      "decoder_layers": 2,
+      "d_ff": 64,
+      "dropout": 0.1,
+      "embedding_dim": 4,
+      "position_base": 10000.0
+    },
+    "nspace_transformer": {
+      "d_model": 32,
+      "n_heads": 2,
+      "encoder_layers": 2,
+      "decoder_layers": 2,
+      "d_ff": 64,
+      "dropout": 0.1,
+      "embedding_dim": 4,
+      "position_base": 10000.0
+    },
+    "tft": {
+      "d_model": 32,
+      "n_heads": 2,
+      "lstm_layers": 1,
+      "dropout": 0.1,
+      "embedding_dim": 4
+    }
+  },
+  "tuning": {
+    "seed": 2026,
+    "strategy": "validation_only_single_seed_then_freeze_before_final_seeds",
+    "fresh_initialization_each_trial": true,
+    "reuse_tuning_checkpoint": false
+  },
+  "final_seeds": [42, 123, 2026],
+  "search": {
+    "objective_names": ["validation_rmse", "validation_mae", "parameter_count"],
+    "selection": "lexicographic_validation_rmse_mae_parameter_count_trial_id",
+    "max_evaluations": 4,
+    "max_seconds": 14400,
+    "space": {
+      "d_model": {"type": "choice", "values": [32, 64]},
+      "n_heads": {"type": "choice", "values": [1, 2, 4]},
+      "learning_rate": {"type": "log_float", "low": 0.0003, "high": 0.003},
+      "weight_decay": {"type": "log_float", "low": 0.000001, "high": 0.001}
+    },
+    "moebs": {
+      "population_size": 2,
+      "max_iterations": 1,
+      "archive_size": 8,
+      "grid_bins": 5,
+      "epsilon": 1e-12,
+      "beta_values": [0, 2]
+    },
+    "other_models": "random_search_same_evaluations_epochs_and_wall_clock_caps"
+  },
+  "inference_benchmark": {
+    "split": "validation",
+    "warmup_runs": 1,
+    "repetitions": 5,
+    "include_adapter_conversion": true
+  },
+  "adaptations": "docs/wp5-models.md",
+  "protocol_document": "docs/wp6-training-protocol.md"
+}

@@ -114,3 +114,24 @@ python -m src.utils.manifest validate artifacts/runs/<run_id>/run_manifest.json
 ```
 
 The dummy configuration only accepts model, configuration version, seed, synthetic mode, and synthetic sample count; no SAP path or business metadata is accepted. `model_name` is a naming check and does not instantiate or train that architecture. Tests use temporary repositories and synthetic fixtures to verify deterministic checksums, unique/exclusive outputs, required metadata, valid timestamps, artifact isolation, no dataset access, and real Git-hook allow/block behavior without staging anything in this repository. Acceptance evidence is recorded in `reports/wp0-verification.md`.
+
+## WP6 completed training and cohort verification
+
+The certified member plan is `configs/cohort.wp6.v1.json`, which pins three
+tuning manifests and nine final manifests by SHA256. Final checkpoint lineage,
+search replay, validation predictions and all shared metrics, early stopping,
+source snapshots, historical copied trials and physical retry cost are audited
+without training or model prediction on test. Closure evidence is immutable and
+private; a new closure invocation creates a new evidence directory.
+
+```powershell
+.\.venv\Scripts\python.exe -B -m src.models.cohort --plan configs/cohort.wp6.v1.json
+.\.venv\Scripts\python.exe -B -m src.models.experiment --verify-cohort artifacts/runs/wp6-closure_20261107T143831Z_6dc939f2/cohort.json
+```
+
+The second command independently reproduces the sealed audit using the pinned
+verifier version. The bundle includes a verifier source snapshot and checksums.
+Use [reports/wp6-verification.md](../reports/wp6-verification.md) for the approved
+cohort, evidence, exact resource definitions and disclosed deviations. The
+single-run training commands in `docs/wp6-single-run-commands.md` create new
+runs and do not change the approved cohort automatically. Test evaluation is WP7.

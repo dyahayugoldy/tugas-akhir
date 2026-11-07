@@ -1,0 +1,96 @@
+{
+  "config_version": "cohort-wp6-v1",
+  "training_config": "configs/models.wp6.v1.json",
+  "training_config_sha256": "7f32475cabc2135f5dcd696d4d1d2fe77f8e7ed44416c60c3bef769bd2d2d188",
+  "tuning_runs": [
+    {
+      "model_name": "moebs_transformer",
+      "manifest_path": "artifacts/runs/moebs_transformer_models-wp6-v1_seed-2026_tuning_20261107t104004730909z_c9293bdb3347/run_manifest.json",
+      "sha256": "191f4cdbeb2a5e13c14843408c276a63352166ca73ea76ea413a442757f9a927"
+    },
+    {
+      "model_name": "nspace_transformer",
+      "manifest_path": "artifacts/runs/nspace_transformer_models-wp6-v1_seed-2026_tuning_20261107t104710646287z_9517aecde0ee/run_manifest.json",
+      "sha256": "63b62c95b1281f045330e0926bc439530d01624046bb2e318bc12b957a59dbfc"
+    },
+    {
+      "model_name": "tft",
+      "manifest_path": "artifacts/runs/tft_models-wp6-v1_seed-2026_tuning_20261107t112249030004z_6f533530b639/run_manifest.json",
+      "sha256": "57ea32d09dda57a68f01f4d2292bfc4bf6ef9283e9534059744a9ed78f9a0ca6"
+    }
+  ],
+  "final_runs": [
+    {
+      "model_name": "moebs_transformer",
+      "seed": 123,
+      "manifest_path": "artifacts/runs/moebs_transformer_models-wp6-v1_seed-123_final_training_20261107t133050627883z_ee0e6e1bfb16/run_manifest.json",
+      "sha256": "6209b8e564fd42262157ec8ad52da568c8ffdf975005e5db1f033073052c95b4"
+    },
+    {
+      "model_name": "moebs_transformer",
+      "seed": 2026,
+      "manifest_path": "artifacts/runs/moebs_transformer_models-wp6-v1_seed-2026_final_training_20261107t133508382324z_fb7826118ee6/run_manifest.json",
+      "sha256": "d5c763d1ca0e5e1d33469a6be18aa2f24ac9ea64700b54dc7db95706c64e6790"
+    },
+    {
+      "model_name": "moebs_transformer",
+      "seed": 42,
+      "manifest_path": "artifacts/runs/moebs_transformer_models-wp6-v1_seed-42_final_training_20261107t113641431829z_5428bb700184/run_manifest.json",
+      "sha256": "cf670d832c5c58974ab1bbe094f0556aa00705f8a4517e4e979b9599d00e553d"
+    },
+    {
+      "model_name": "nspace_transformer",
+      "seed": 123,
+      "manifest_path": "artifacts/runs/nspace_transformer_models-wp6-v1_seed-123_final_training_20261107t134331035562z_43a9a7bed85c/run_manifest.json",
+      "sha256": "1d096d7a9a4635ee5b0b79c7d49fbd83a79143b223a8c35ac580ecf90caa2e0d"
+    },
+    {
+      "model_name": "nspace_transformer",
+      "seed": 2026,
+      "manifest_path": "artifacts/runs/nspace_transformer_models-wp6-v1_seed-2026_final_training_20261107t134717274881z_983306288e07/run_manifest.json",
+      "sha256": "260f663383e1ed0055e5e13f938fe30a46281e5855c42d141abaaf85edd6d205"
+    },
+    {
+      "model_name": "nspace_transformer",
+      "seed": 42,
+      "manifest_path": "artifacts/runs/nspace_transformer_models-wp6-v1_seed-42_final_training_20261107t134034717190z_73a55882d9ac/run_manifest.json",
+      "sha256": "454b76bd73a733bce27d22ccef84332f103805f713ea1bb669c419bb64b2157a"
+    },
+    {
+      "model_name": "tft",
+      "seed": 123,
+      "manifest_path": "artifacts/runs/tft_models-wp6-v1_seed-123_final_training_20261107t135545273221z_5f94e78a8b1b/run_manifest.json",
+      "sha256": "73b69058563baafdca4f2d6bb31234d2fcb14056c0cc59552ac239dfdb11dd9d"
+    },
+    {
+      "model_name": "tft",
+      "seed": 2026,
+      "manifest_path": "artifacts/runs/tft_models-wp6-v1_seed-2026_final_training_20261107t140434860044z_aeb69ef099a1/run_manifest.json",
+      "sha256": "4a08ab0e942b0496f75eeb2b67f04c7e9d5fb30bbf75d6de9d1643088d691efb"
+    },
+    {
+      "model_name": "tft",
+      "seed": 42,
+      "manifest_path": "artifacts/runs/tft_models-wp6-v1_seed-42_final_training_20261107t135108806156z_f837f0a0815a/run_manifest.json",
+      "sha256": "eb702f8e8d7ea4790704d56a655b9ef714afff4e7c8b70b2134bf5b39fe2b912"
+    }
+  ],
+  "resume": {
+    "model_name": "tft",
+    "original_directory": "artifacts/runs/tft_models-wp6-v1_seed-2026_tuning_20261107t105738704984z_5fe4332a7fcf",
+    "copied_trial_ids": [
+      0,
+      1,
+      2
+    ],
+    "recomputed_trial_ids": [
+      3
+    ]
+  },
+  "excluded_directories": [
+    "artifacts/runs/moebs_transformer_models-wp6-v1_seed-2026_tuning_20261107t101956345682z_ea99858d73dc",
+    "artifacts/runs/moebs_transformer_models-wp6-v1_seed-2026_tuning_20261107t102902848919z_9dbb18bd6324",
+    "artifacts/runs/nspace_transformer_models-wp6-v1_seed-2026_tuning_20261107t103900939130z_75ee2a840930"
+  ],
+  "output_root": "artifacts/runs"
+}

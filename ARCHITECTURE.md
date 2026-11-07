@@ -185,6 +185,17 @@ experiment config
 
 Fairness berarti dataset/split/evaluator sama, bukan seluruh arsitektur harus memiliki jumlah parameter atau preprocessing internal identik. Jika MoEBS memakai budget optimasi, batas pencarian model lain dan total compute harus dicatat agar pembaca dapat menilai trade-off secara jujur.
 
+WP6 telah ditutup melalui `src/models/cohort.py` dengan plan keanggotaan
+`configs/cohort.wp6.v1.json`. Cohort privat mengikat 3 tuning dan 9 final run
+dengan checksum, audit checkpoint/prediksi/metrik validation, replay pencarian,
+dan rekonsiliasi provenance serta biaya retry. Manifest historis tidak diubah.
+Source model/data/evaluator inti sama; perubahan wrapper dicatat pada snapshot.
+Empat kandidat seleksi/model sebanding, tetapi compute fisik historis tidak
+identik akibat retry. Deviasi serta overhead yang tidak dapat direkonstruksi
+diungkapkan pada [reports/wp6-verification.md](reports/wp6-verification.md).
+Pembacaan tensor test oleh pemeriksa integritas tidak memberi test ke model;
+checkpoint test prediction/evaluation tetap hanya dilakukan pada WP7.
+
 ## Evaluasi
 
 Prediction artifact harus memuat paling sedikit:

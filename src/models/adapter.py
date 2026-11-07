@@ -164,11 +164,13 @@ class ForecastAdapter:
         configure_runtime(self.runtime, self.seed)
         optimizer = torch.optim.AdamW(self.network.parameters(), lr=run_config["learning_rate"], weight_decay=run_config["weight_decay"])
         history, best_state, best, stale = [], None, float("inf"), 0
+        update_seconds, validation_seconds = 0.0, 0.0
         synchronize(self.device)
         started = time.perf_counter()
         for epoch in range(run_config["max_epochs"]):
             self.network.train()
             seen, loss_sum = 0, 0.0
+            epoch_update_started = time.perf_counter()
             for batch in train_data.batches(run_config["batch_size"], shuffle=run_config["shuffle"], seed=self.seed + epoch):
                 if time.perf_counter() - started >= run_config["max_seconds"]:
                     raise TimeoutError("Training reached its configured wall-clock cap; incomplete trial rejected")
@@ -185,10 +187,17 @@ class ForecastAdapter:
                 loss_sum += float(loss.detach()) * len(labels)
             if seen != len(train_data):
                 raise ValueError("Training dropped samples")
+            epoch_update_seconds = time.perf_counter() - epoch_update_started
+            update_seconds += epoch_update_seconds
+            validation_started = time.perf_counter()
             result = self.predict(validation_data, batch_size=run_config["batch_size"])
+            epoch_validation_seconds = time.perf_counter() - validation_started
+            validation_seconds += epoch_validation_seconds
             rmse = float(np.sqrt(np.square(result["prediction"] - validation_data.arrays["y"].astype(np.float64)).mean()))
             history.append({"epoch": epoch + 1, "train_samples": seen, "validation_samples": len(validation_data),
-                            "train_mse_scaled": loss_sum / seen, "validation_rmse": rmse})
+                            "train_mse_scaled": loss_sum / seen, "validation_rmse": rmse,
+                            "training_update_seconds": epoch_update_seconds,
+                            "validation_selection_seconds": epoch_validation_seconds})
             if rmse < best - run_config["min_delta"]:
                 best, stale = rmse, 0
                 best_state = {key: value.detach().cpu().clone() for key, value in self.network.state_dict().items()}
@@ -206,7 +215,10 @@ class ForecastAdapter:
         self.fit_record = {"history": history, "best_epoch": best_epoch, "best_validation_rmse": best,
                            "training_seconds": elapsed, "train_samples": len(train_data),
                            "validation_samples": len(validation_data), "test_used": False,
-                           "training_config": copy.deepcopy(run_config), "optimizer_state_saved": False}
+                           "training_update_seconds": update_seconds,
+                           "validation_selection_seconds": validation_seconds,
+                           "epochs_completed": len(history), "training_config": copy.deepcopy(run_config),
+                           "optimizer_state_saved": False}
         return self, copy.deepcopy(self.fit_record)
 
     def metadata(self):

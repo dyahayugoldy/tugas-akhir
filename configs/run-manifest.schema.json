@@ -25,6 +25,7 @@
     "schema_version": {"const": "1"},
     "run_type": {"enum": ["dummy", "acceptance", "experiment"]},
     "wp5": {"type": "object"},
+    "wp6": {"type": "object"},
     "config_version": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
     "created_at_utc": {"type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"},
     "source_dirty": {"type": "boolean"},
@@ -125,6 +126,35 @@
     "then": {"required": ["wp5"], "properties": {"wp5": {
       "required": ["purpose", "verification", "source_code_sha256", "split_manifest_sha256", "checksums"],
       "properties": {"purpose": {"const": "WP5_acceptance_not_final_comparison"}}
+    }}}
+  }, {
+    "if": {"properties": {"run_type": {"const": "experiment"}}},
+    "then": {"required": ["wp6"], "properties": {"wp6": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["purpose", "phase", "verification", "source_code_sha256", "split_manifest_sha256", "checksums", "privacy", "availability_assumption", "coverage_assumption"],
+      "properties": {
+        "purpose": {"const": "WP6_fair_training_protocol"},
+        "phase": {"enum": ["tuning", "final_training"]},
+        "verification": {"type": "object"},
+        "source_code_sha256": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+        "split_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "checksums": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+        "privacy": {"const": "private_no_raw_business_identifiers_in_logs"},
+        "availability_assumption": {},
+        "coverage_assumption": {},
+        "data_digests": {"type": "object"},
+        "training": {"type": "object"},
+        "search": {"type": "object"},
+        "selected_trial_id": {"type": ["integer", "null"], "minimum": 0},
+        "search_seconds": {"type": "number", "minimum": 0},
+        "total_trial_training_seconds": {"type": "number", "minimum": 0},
+        "completed_trials": {"type": "integer", "minimum": 0},
+        "fresh_initialization": {"type": "boolean"},
+        "tuning": {"type": "object"},
+        "inference_benchmark": {"type": "object"},
+        "memory": {"type": "object"}
+      }
     }}}
   }]
 }
