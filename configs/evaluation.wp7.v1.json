@@ -1,0 +1,23 @@
+{
+  "config_version": "evaluation-wp7-v1",
+  "purpose": "WP7_frozen_test_evaluation",
+  "cohort_path": "artifacts/runs/wp6-closure_20261107T143831Z_6dc939f2/cohort.json",
+  "cohort_sha256": "7554db3e4d8e4a3a76063e2e2edaa20be61e78e681a928e463a6dc6603e1f138",
+  "output_root": "artifacts/runs",
+  "models": ["moebs_transformer", "nspace_transformer", "tft"],
+  "seeds": [42, 123, 2026],
+  "runtime": {"device": "cpu", "precision": "float32", "threads": 2, "deterministic": true},
+  "batch_size": 256,
+  "metrics": {"smape_epsilon": 0.000001, "constant_r2": "null", "mape": "actual_nonzero_only"},
+  "prediction_policy": "original_pcs_unclipped_no_rounding",
+  "inference_benchmark": {"warmup_runs": 1, "repetitions": 5, "include_adapter_conversion": true},
+  "error_analysis": {
+    "minimum_group_samples": 20,
+    "minimum_group_series": 3,
+    "train_sparse_zero_fraction": 0.8,
+    "train_target_outlier_quantile": 0.99,
+    "residual_quantiles": [0.01, 0.05, 0.5, 0.95, 0.99],
+    "worst_error_rows": 25
+  },
+  "protocol_document": "docs/wp7-evaluation-protocol.md"
+}

@@ -2,7 +2,7 @@
 
 Repositori ini menyiapkan implementasi penelitian tugas akhir berjudul **Analisis Komparatif Model Transformer untuk Prediksi Penjualan Ekspor Multivariat dengan Studi Kasus Data SAP Perusahaan XYZ**.
 
-Status saat ini: WP0-WP6 selesai dan diverifikasi. WP6 menghasilkan tiga hasil tuning dan sembilan checkpoint final (3 model × seed 42/123/2026), dengan maksimum 100 epoch dan patience 10. Cohort dan audit resume/resource telah disahkan dengan keterbatasan biaya retry yang dilaporkan; total compute aktual tidak diklaim identik. Evaluasi test belum dilakukan dan tetap menjadi WP7. Bukti tersedia di [reports/wp6-verification.md](reports/wp6-verification.md), dengan lineage data/model pada [reports/wp4-verification.md](reports/wp4-verification.md) dan [reports/wp5-verification.md](reports/wp5-verification.md).
+Status saat ini: WP0-WP7 selesai dan diverifikasi. Sembilan checkpoint final WP6 (3 model × seed 42/123/2026) telah dievaluasi pada 3.187 window test yang sama. Prediksi, lima metrik, analisis error, ringkasan antar seed dan waktu inferensi test tersedia pada [reports/wp7-verification.md](reports/wp7-verification.md); keputusan komparatif menjadi WP8. Keterbatasan retry/resource tetap tercatat pada [reports/wp6-verification.md](reports/wp6-verification.md), dengan lineage data/model pada [reports/wp4-verification.md](reports/wp4-verification.md) dan [reports/wp5-verification.md](reports/wp5-verification.md).
 
 ## Ringkasan penelitian
 
@@ -138,3 +138,13 @@ python -m venv .venv
 ```
 
 Runner membuat run unik, checkpoint, prediksi/metrics validation, seluruh trial, source snapshot, manifest dengan checksum, dan satu berkas cohort yang mengikat ketiga run. Test tidak diprediksi pada WP5. Rincian acuan, adaptasi kausal, batas interpretasi, dan rekomendasi resource/seed WP6 ada di [docs/wp5-models.md](docs/wp5-models.md).
+
+## Evaluasi test WP7
+
+Runner `src.evaluation.test_evaluation` memuat sembilan checkpoint final cohort WP6 yang dipin checksum dan memakai tensor test WP4 tersegel. Metrik menggunakan satuan pcs, MAPE hanya pada aktual bukan nol beserta coverage, SMAPE dengan epsilon 1e-6, serta `r2` eksplisit. Prediksi negatif tetap dicatat. Protokol dan perintah reproduksi ada di [docs/wp7-evaluation-protocol.md](docs/wp7-evaluation-protocol.md).
+
+```powershell
+.\.venv\Scripts\python.exe -B -m src.evaluation.test_evaluation --verify artifacts/runs/wp7-evaluation_20261109t040256z_04861126/evaluation.json
+```
+
+Verifikasi memuat ulang checkpoint, mencocokkan seluruh prediksi dan menghitung ulang metrik/analisis error. Detail privat tetap di `artifacts/`; laporan agregat yang ditinjau tersedia di [reports/wp7-verification.md](reports/wp7-verification.md).

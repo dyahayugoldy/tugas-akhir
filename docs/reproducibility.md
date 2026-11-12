@@ -135,3 +135,27 @@ Use [reports/wp6-verification.md](../reports/wp6-verification.md) for the approv
 cohort, evidence, exact resource definitions and disclosed deviations. The
 single-run training commands in `docs/wp6-single-run-commands.md` create new
 runs and do not change the approved cohort automatically. Test evaluation is WP7.
+
+## WP7 frozen test evaluation
+
+`configs/evaluation.wp7.v1.json` pins the certified WP6 cohort by SHA256. The
+runner evaluates all nine final checkpoints on the identical sealed WP4 test
+windows, writes private unique run artifacts, and independently verifies the
+ordered forecasts, metrics, diagnostics and per-seed/model summaries. No fit,
+selection, clipping or preprocessing refit occurs. Runtime/config/source,
+checkpoint provenance and historical WP6 training time remain traceable.
+
+```powershell
+.\.venv\Scripts\python.exe -B -m src.evaluation.test_evaluation --config configs/evaluation.wp7.v1.json
+.\.venv\Scripts\python.exe -B -m src.evaluation.test_evaluation --verify artifacts/runs/wp7-evaluation_20261109t040256z_04861126/evaluation.json
+```
+
+The first command creates new artifacts; use the second to audit the official
+9 November 2026 evaluation without changing saved predictions or timings.
+Each timing repetition uses the same forecast, so timing is not an additional
+model selection step. Seed-mean and sample SD summaries use per-run metrics,
+not seed-averaged forecasts. Small diagnostic groups are suppressed, and all
+category labels and row-level forecasts stay private. The schema accepts
+experiment manifests with exactly one WP6 or WP7 stage object. See
+[wp7-evaluation-protocol.md](wp7-evaluation-protocol.md) and the disclosure-reviewed
+[WP7 report](../reports/wp7-verification.md) for metric, timing and validity rules.

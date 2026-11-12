@@ -219,6 +219,20 @@ Evaluator menghasilkan metrik global dan, bila aman serta ukuran sample memadai,
 
 Skala normalisasi harus dikembalikan ke satuan target sebelum metrik akhir dihitung. Simpan prediksi per seed agar rerata dan variasi antar run dapat diperiksa.
 
+WP7 diimplementasikan oleh `src/evaluation/test_evaluation.py` dengan konfigurasi
+`configs/evaluation.wp7.v1.json` yang mengikat cohort resmi WP6 melalui SHA256.
+Kesembilan final checkpoint memakai tensor test yang sama; tidak ada fit,
+seleksi, clipping atau refit preprocessing. Setiap evaluasi mempunyai run unik,
+salinan checkpoint identik byte, provenance training WP6, prediksi pcs, metrik,
+analisis residual/kelompok privat, snapshot source dan checksum. Manifest
+`run_type=experiment` memakai tepat satu objek tahap `wp6` atau `wp7`.
+Waktu fitting baru WP7 nol; training WP6 ditautkan terpisah. Benchmark test
+memakai satu warm-up dan lima repetisi identik, dengan median waktu per run.
+Paket evaluasi mengikat seluruh run dan tabel per seed/mean/SD. Verifier
+memuat ulang checkpoint dan menghitung ulang prediksi, metrik serta analisis
+tanpa mengganti waktu historis. Bukti dan batas interpretasi ada di
+[reports/wp7-verification.md](reports/wp7-verification.md).
+
 ## Artefak dan provenance
 
 ```text

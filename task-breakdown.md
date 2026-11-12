@@ -157,7 +157,7 @@ Nama berkas sumber, checksum, dan manifest aktif harus selalu diambil dari konfi
 
 ## WP6 - Protokol training yang adil
 
-**Status: ✅ Selesai dengan keterbatasan resource yang dilaporkan (7 November 2026).** Cohort mengikat 3 hasil tuning dan 9 final run dari seed 42/123/2026. Seluruh checkpoint, manifest, data/split, pemilihan kandidat, early stopping, prediksi validation dan metrik telah diaudit. Provenance resume TFT dan seluruh fit retry yang tercatat direkonsiliasi tanpa mengubah manifest lama. Anggaran seleksi 4 kandidat/model sebanding; total compute fisik berbeda akibat retry dan diungkapkan sebagai keterbatasan. Seluruh 83 test lulus. Bukti, cohort resmi dan perintah verifikasi ada di [reports/wp6-verification.md](reports/wp6-verification.md). Test belum diprediksi oleh model; evaluasi tetap WP7.
+**Status: ✅ Selesai dengan keterbatasan resource yang dilaporkan (7 November 2026).** Cohort mengikat 3 hasil tuning dan 9 final run dari seed 42/123/2026. Seluruh checkpoint, manifest, data/split, pemilihan kandidat, early stopping, prediksi validation dan metrik telah diaudit. Provenance resume TFT dan seluruh fit retry yang tercatat direkonsiliasi tanpa mengubah manifest lama. Anggaran seleksi 4 kandidat/model sebanding; total compute fisik berbeda akibat retry dan diungkapkan sebagai keterbatasan. Seluruh 83 test lulus. Bukti, cohort resmi dan perintah verifikasi ada di [reports/wp6-verification.md](reports/wp6-verification.md). WP6 tidak memprediksi test; hasil evaluasi test kini tersedia pada WP7.
 
 **Tujuan:** mencegah perbedaan hasil akibat perlakuan eksperimen yang tidak setara.
 
@@ -171,22 +171,22 @@ Nama berkas sumber, checksum, dan manifest aktif harus selalu diambil dari konfi
 
 ## WP7 - Evaluasi dan analisis error
 
-**Status: ⬜ Belum dimulai untuk evaluasi test.** WP5 menyediakan metrik bersama MAE/RMSE/MAPE/SMAPE/`r2` beserta prediksi validation acceptance. Prediction artifact dan analisis error test belum dibuat; WP7 menggunakan model hasil protokol resmi WP6.
+**Status: ✅ Selesai (9 November 2026).** Sembilan final checkpoint WP6 telah menghasilkan masing-masing 3.187 prediksi test pada split yang identik. Prediksi, lima metrik, ringkasan mean/SD antar seed, analisis residual/sparsity/kelompok dan waktu inferensi test disimpan dengan manifest serta checksum dan diverifikasi ulang. Seluruh 87 test lulus. Bukti, hasil agregat dan keterbatasan ada di [reports/wp7-verification.md](reports/wp7-verification.md). Keputusan komparatif tetap WP8.
 
 **Tujuan:** menghasilkan hasil kuantitatif yang dapat dibandingkan langsung.
 
-- Hasilkan prediksi test untuk horizon yang sama dan satuan yang sama dengan aktual.
-- Hitung MAE, RMSE, MAPE, SMAPE, dan R^2 dengan formula serta perlakuan nilai nol yang dibekukan.
-- Laporkan nilai per seed dan ringkasan mean, standar deviasi, atau interval yang sesuai.
-- Uraikan error berdasarkan horizon, negara tujuan, brand/kategori, dan periode bila ukuran sampel memadai dan aman dibagikan.
-- Lakukan pemeriksaan residual, prediksi negatif bila target non-negatif, outlier, dan kegagalan pada seri sparse.
-- Ukur waktu inferensi terpisah dari preprocessing dan training.
+- [x] Hasilkan prediksi test untuk horizon yang sama dan satuan yang sama dengan aktual.
+- [x] Hitung MAE, RMSE, MAPE, SMAPE, dan R^2 dengan formula serta perlakuan nilai nol yang dibekukan.
+- [x] Laporkan nilai per seed dan ringkasan mean, standar deviasi, atau interval yang sesuai.
+- [x] Uraikan error berdasarkan horizon, negara tujuan, brand/kategori, dan periode bila ukuran sampel memadai dan aman dibagikan.
+- [x] Lakukan pemeriksaan residual, prediksi negatif bila target non-negatif, outlier, dan kegagalan pada seri sparse.
+- [x] Ukur waktu inferensi terpisah dari preprocessing dan training.
 
 **Selesai bila:** semua angka pada tabel perbandingan dapat ditelusuri ke prediction artifact dan run manifest.
 
 ## WP8 - Keputusan komparatif
 
-**Status: ⬜ Belum dimulai.** Belum ada hasil eksperimen tiga model yang dapat dibandingkan atau tabel keputusan final.
+**Status: ⬜ Belum dimulai.** Hasil test tiga model dan ringkasan antar seed telah tersedia dari WP7. Keputusan gabungan akurasi, efisiensi, variasi seed dan interpretabilitas belum disusun.
 
 **Tujuan:** membuat rekomendasi yang menjawab rumusan masalah, bukan sekadar memilih nilai metrik terkecil.
 
@@ -194,7 +194,7 @@ Nama berkas sumber, checksum, dan manifest aktif harus selalu diambil dari konfi
 - Jangan menyatakan pemenang tunggal jika perbedaan metrik berada dalam variasi eksperimen atau trade-off terlalu besar.
 - Untuk TFT, ekspor ringkasan feature importance hanya bila hasil stabil dan tidak mengungkap data bisnis sensitif.
 - Bedakan klaim yang didukung test holdout dari hipotesis atau hasil validation.
-- Catat ancaman validitas: 25 bulan efektif, sparsity, field brand, kurs, kategori baru, dan perbedaan domain dengan paper acuan.
+- Catat ancaman validitas: cakupan waktu efektif, sparsity, field brand, kurs, kategori baru, dan perbedaan domain dengan paper acuan.
 
 **Selesai bila:** tabel final dan narasi menjawab tiga rumusan masalah dengan bukti yang dapat direproduksi.
 
