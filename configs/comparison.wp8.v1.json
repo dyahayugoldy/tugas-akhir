@@ -1,0 +1,38 @@
+{
+  "config_version": "comparison-wp8-v1",
+  "purpose": "WP8_reproducible_comparative_decision",
+  "evaluation_path": "artifacts/runs/wp7-evaluation_20261109t040256z_04861126/evaluation.json",
+  "evaluation_sha256": "170618cec788f9f45e249f2bb90eeb27af35d62cf18a890ccac7cbb8e9e4d394",
+  "output_root": "artifacts/runs",
+  "models": ["moebs_transformer", "nspace_transformer", "tft"],
+  "seeds": [42, 123, 2026],
+  "accuracy": {
+    "primary_metrics": ["mae", "rmse", "smape", "r2"],
+    "secondary_metrics": ["mape"],
+    "lower_is_better": ["mae", "rmse", "mape", "smape"],
+    "higher_is_better": ["r2"],
+    "seed_variation_rule": "mean_gap_must_exceed_one_combined_sample_sd_to_call_a_stable_pairwise_advantage",
+    "combined_sd_multiplier": 1.0
+  },
+  "efficiency": {
+    "metrics": ["parameter_count", "wp6_training_seconds", "test_inference_median_seconds"],
+    "lower_is_better": true,
+    "training_time_scope": "final_WP6_fit_only_excludes_search_retry_and_data_preparation",
+    "inference_time_scope": "WP7_test_median_of_five_repetitions_excludes_feature_build_inverse_scaling_and_metrics"
+  },
+  "interpretability": {
+    "model_name": "tft",
+    "split": "test",
+    "batch_size": 256,
+    "selection_groups": ["encoder_selection", "decoder_selection"],
+    "minimum_fields_for_rank_stability": 3,
+    "minimum_pairwise_spearman": 0.8,
+    "publish_only_if_all_seed_pairs_meet_threshold": true,
+    "disclosure": "feature_contract_names_only_no_category_values_or_sample_level_weights"
+  },
+  "privacy": {
+    "allow_raw_predictions": false,
+    "allow_category_values": false,
+    "allow_sample_level_interpretation": false
+  }
+}

@@ -186,7 +186,7 @@ Nama berkas sumber, checksum, dan manifest aktif harus selalu diambil dari konfi
 
 ## WP8 - Keputusan komparatif
 
-**Status: ⬜ Belum dimulai.** Hasil test tiga model dan ringkasan antar seed telah tersedia dari WP7. Keputusan gabungan akurasi, efisiensi, variasi seed dan interpretabilitas belum disusun.
+**Status: ✅ Selesai (13 November 2026).** Paket WP8 memverifikasi ulang bukti WP7 tersegel untuk sembilan evaluasi test, membandingkan lima metrik, variasi tiga seed, parameter, waktu training/inferensi, serta stabilitas interpretabilitas TFT. MoEBS-Transformer direkomendasikan secara bersyarat sebagai kandidat operasional karena memimpin rerata MAE/RMSE/R² dan seluruh indikator efisiensi; tidak ada pemenang akurasi tunggal yang diklaim. Bobot variable-selection TFT tidak stabil antar-seed sehingga tidak dipublikasikan sebagai feature importance. Bukti, tabel aman, dan batas klaim tersedia di [reports/wp8-verification.md](reports/wp8-verification.md).
 
 **Tujuan:** membuat rekomendasi yang menjawab rumusan masalah, bukan sekadar memilih nilai metrik terkecil.
 

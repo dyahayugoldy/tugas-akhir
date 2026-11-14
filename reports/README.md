@@ -19,3 +19,5 @@ WP5 three-model PyTorch implementation, matched one-epoch acceptance, checkpoint
 WP6 completed three-model multi-seed training, certified cohort, historical resume provenance, retry resource accounting and limitations are recorded in `wp6-verification.md`; per-seed epochs/timing are in `wp6-training-verification.md`. WP6 does not evaluate test data; its final checkpoints are evaluated in WP7.
 
 WP7 completed evaluation of nine final checkpoints on identical sealed test windows is recorded in `wp7-verification.md`, including per-seed and aggregate metrics, MAPE coverage, residual/sparse-series analysis, negative forecasts, inference timing and limitations. Detailed forecasts, category labels and error diagnostics remain private. WP8 owns the final comparative decision.
+
+WP8 uses the sealed WP7 receipt only. Its reproducible decision package stays in `artifacts/runs/`; the reviewed aggregate conclusion is recorded in `wp8-verification.md`. TFT variable-selection summaries are published only when all configured seed-pair stability checks pass; detailed per-sample weights remain private.
